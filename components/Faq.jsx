@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+// Correctly import icons individually to prevent errors
 import {
   Search,
   HelpCircle,
@@ -9,23 +11,11 @@ import {
   Truck,
   RotateCcw,
   User,
+  ChevronDown,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
+// --- Data (FAQs and Categories) ---
+// This data is kept the same as your original component.
 const faqs = [
   // Shopping FAQs
   {
@@ -117,122 +107,149 @@ const categories = [
   { id: "account", label: "Account", icon: User },
 ];
 
+// --- Reusable Accordion Component (Self-contained) ---
+const AccordionItem = ({ question, answer, isOpen, onClick }) => (
+  <div className="border-b border-slate-200">
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between py-4 text-left font-semibold text-slate-800 transition-colors hover:text-slate-600"
+    >
+      <span>{question}</span>
+      <ChevronDown
+        className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
+          isOpen ? "rotate-180" : ""
+        }`}
+      />
+    </button>
+    <div
+      className={`grid overflow-hidden text-slate-600 transition-all duration-300 ease-in-out ${
+        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      }`}
+    >
+      <div className="overflow-hidden">
+        <p className="pb-4 leading-relaxed">{answer}</p>
+      </div>
+    </div>
+  </div>
+);
+
+// --- Main FAQ Component ---
 const Faq = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [openAccordion, setOpenAccordion] = useState(null);
 
-  const filteredFAQs = faqs.filter((faq) => {
-    const matchesSearch =
-      faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      activeCategory === "all" || faq.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Memoized filtering logic for performance
+  const filteredFAQs = useMemo(() => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return faqs.filter((faq) => {
+      const matchesSearch =
+        faq.question.toLowerCase().includes(lowerCaseSearchTerm) ||
+        faq.answer.toLowerCase().includes(lowerCaseSearchTerm);
+      const matchesCategory =
+        activeCategory === "all" || faq.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, activeCategory]);
+
+  const handleAccordionClick = (id) => {
+    setOpenAccordion(openAccordion === id ? null : id);
+  };
 
   return (
     <div className="py-12 bg-slate-50/30">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
+      <div className="mx-auto max-w-7xl px-6">
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold text-slate-800 lg:text-4xl mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+          <p className="mx-auto max-w-3xl text-lg text-slate-600">
             Find answers to common questions about shopping, payments, shipping,
             and more.
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-12">
+        {/* Search Bar */}
+        <div className="mx-auto mb-12 max-w-2xl">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <Input
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input
               type="text"
               placeholder="Search for answers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-3 text-base border-2 border-slate-200 focus:border-slate-400 rounded-xl shadow-sm"
+              className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 pl-12 text-base shadow-sm transition-colors focus:border-slate-400 focus:outline-none"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Categories Sidebar */}
           <div className="md:col-span-1">
-            <Card className="sticky top-8 shadow-sm border-slate-200 bg-white">
-              <CardHeader>
-                <CardTitle className="text-slate-700 flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5" />
-                  Categories
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
+            <div className="sticky top-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-700">
+                <HelpCircle className="h-5 w-5" />
+                Categories
+              </h3>
+              <div className="space-y-1">
                 {categories.map((category) => {
                   const Icon = category.icon;
+                  const isActive = activeCategory === category.id;
                   return (
                     <button
                       key={category.id}
                       onClick={() => setActiveCategory(category.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 text-sm ${
-                        activeCategory === category.id
+                      className={`flex w-full items-center gap-3 rounded-lg p-3 text-sm font-medium transition-all duration-200 ${
+                        isActive
                           ? "bg-slate-700 text-white shadow-md"
-                          : "hover:bg-slate-100 text-slate-700 hover:text-slate-900"
+                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-4 h-4" />
-                        <span className="font-medium">{category.label}</span>
-                      </div>
+                      <Icon className="h-4 w-4" />
+                      <span>{category.label}</span>
                     </button>
                   );
                 })}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* FAQ Content */}
           <div className="md:col-span-3">
-            <div>
-              {filteredFAQs.length > 0 ? (
-                <Accordion type="single" collapsible className="space-y-4">
-                  {filteredFAQs.map((faq) => (
-                    <AccordionItem
-                      key={faq.id}
-                      value={faq.id}
-                      className="bg-white rounded-xl shadow-sm border border-slate-200 px-6 py-2 hover:shadow-md transition-shadow"
-                    >
-                      <AccordionTrigger className="text-left text-slate-800 font-semibold hover:text-slate-600 transition-colors">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-slate-600 leading-relaxed pt-4">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-                  <HelpCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-slate-600 mb-2">
-                    No results found
-                  </h3>
-                  <p className="text-slate-500 mb-6">
-                    Try adjusting your search terms or browse different
-                    categories.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setActiveCategory("all");
-                    }}
-                    variant="outline"
-                    className="border-slate-300 text-slate-600 hover:bg-slate-100"
-                  >
-                    Clear Search
-                  </Button>
-                </div>
-              )}
-            </div>
+            {filteredFAQs.length > 0 ? (
+              <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                {filteredFAQs.map((faq) => (
+                  <AccordionItem
+                    key={faq.id}
+                    question={faq.question}
+                    answer={faq.answer}
+                    isOpen={openAccordion === faq.id}
+                    onClick={() => handleAccordionClick(faq.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              // No Results Found State
+              <div className="rounded-xl bg-white py-12 text-center shadow-sm">
+                <HelpCircle className="mx-auto mb-4 h-16 w-16 text-slate-300" />
+                <h3 className="mb-2 text-xl font-semibold text-slate-600">
+                  No results found
+                </h3>
+                <p className="mb-6 text-slate-500">
+                  Try adjusting your search or browsing other categories.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setActiveCategory("all");
+                  }}
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

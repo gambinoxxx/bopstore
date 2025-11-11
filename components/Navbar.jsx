@@ -1,5 +1,5 @@
 'use client'
-import { PackageIcon, Search, ShoppingCart } from "lucide-react";
+import { Flame, PackageIcon, Search, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -40,6 +40,10 @@ const Navbar = () => {
                     <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
                         <Link href="/">Home</Link>
                         <Link href="/shop">Shop</Link>
+                        <Link href="/deal" className="flex items-center gap-1.5 font-semibold text-orange-600 hover:text-orange-700 transition-colors">
+                            <Flame size={16} />
+                            Hot Deals
+                        </Link>
                         <Link href="/">About</Link>
                         <Link href="/">Contact</Link>
 
