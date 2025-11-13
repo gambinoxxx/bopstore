@@ -34,6 +34,7 @@ model Product {
     category    String
     stock       Int      @default(0)
     storeId     String
+    isHotDeal   Boolean  @default(false)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
@@ -138,6 +139,16 @@ model Coupon {
     isPublic    Boolean
     expiresAt   DateTime
     createdAt   DateTime @default(now())
+}
+
+model Deal {
+    id          String   @id @default(cuid())
+    title       String
+    description String
+    endDate     DateTime
+    isActive    Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 }
 
 // Required for creating a Store: userId, name, username, email, contact, logo, description, address (optional: , status, isActive)

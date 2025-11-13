@@ -8,7 +8,7 @@ import axios from "axios"
 
 export default function StoreManageProducts() {
     const {getToken} = useAuth()
-    const {user} = useUser()
+    const {user, isLoaded} = useUser()
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₦'
 
@@ -33,6 +33,12 @@ export default function StoreManageProducts() {
         );
     };
 
+    const handleHotDealChange = (productId, isHotDeal) => {
+        setProducts(prevProducts =>
+            prevProducts.map(p => (p.id === productId ? { ...p, isHotDeal } : p))
+        );
+    };
+
     const updateStock = async (productId, stock) => {
         try {
             const token = await getToken();
@@ -46,13 +52,27 @@ export default function StoreManageProducts() {
         }
     };
 
+    const updateHotDealStatus = async (productId, isHotDeal) => {
+        try {
+            const token = await getToken();
+            // This assumes your API can handle an `isHotDeal` update.
+            const { data } = await axios.put('/api/store/product', { productId, isHotDeal }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(data.message || "Status updated!");
+        } catch (error) {
+            toast.error(error?.response?.data?.error || 'Failed to update status.');
+            fetchProducts(); // Revert optimistic update on error
+        }
+    };
+
     useEffect(() => {
-          if(user){
+          if(isLoaded && user){
                fetchProducts()
           }
-    }, [user])
+    }, [user, isLoaded])
 
-    if (loading) return <Loading />
+    if (loading || !isLoaded) return <Loading />
 
     return (
         <>
@@ -65,6 +85,7 @@ export default function StoreManageProducts() {
                         <th className="px-4 py-3 hidden md:table-cell">MRP</th>
                         <th className="px-4 py-3">Price</th>
                         <th className="px-4 py-3">Stock</th>
+                        <th className="px-4 py-3">Hot Deal</th>
                     </tr>
                 </thead>
                 <tbody className="text-slate-700">
@@ -92,6 +113,22 @@ export default function StoreManageProducts() {
                                         Save
                                     </button>
                                 </div>
+                            </td>
+                            <td className="px-4 py-3">
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={product.isHotDeal || false} 
+                                        onChange={(e) => {
+                                            // Optimistically update the UI
+                                            handleHotDealChange(product.id, e.target.checked);
+                                            // Then, call the API to save the change
+                                            updateHotDealStatus(product.id, e.target.checked);
+                                        }}
+                                        className="sr-only peer" 
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
                             </td>
                         </tr>
                     ))}

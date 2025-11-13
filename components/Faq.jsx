@@ -45,7 +45,7 @@ const faqs = [
     id: "payment-1",
     question: "What payment methods do you accept?",
     answer:
-      "We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and other digital payment methods. All payments are processed securely through our encrypted payment system.",
+      "We accept credit cards and dedit cards (Visa, MasterCard, verve) and paystack. All payments are processed securely through our encrypted payment system.",
     category: "payment",
   },
   {
@@ -77,7 +77,7 @@ const faqs = [
     id: "returns-1",
     question: "What is your return policy?",
     answer:
-      "We offer a 30-day return policy from the date of delivery. Items must be unused, in original condition, and include all original packaging and accessories. Some items may not be returnable.",
+      "We offer a 7-day return policy from the date of delivery. Items must be unused, in original condition, and include all original packaging and accessories. Some items may not be returnable.",
     category: "returns",
   },
 

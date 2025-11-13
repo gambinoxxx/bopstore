@@ -1,17 +1,16 @@
 'use client'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRightIcon } from 'lucide-react'
 import Link from 'next/link'
-import React from 'react'
 
-const Title = ({ title, description, visibleButton = true, href = '' }) => {
-
+const Title = ({ title, description, href = '/shop', visibleButton = true, icon }) => {
     return (
-        <div className='flex flex-col items-center'>
-            <h2 className='text-2xl font-semibold text-slate-800'>{title}</h2>
-            <Link href={href} className='flex items-center gap-5 text-sm text-slate-600 mt-2'>
-                <p className='max-w-lg text-center'>{description}</p>
-                {visibleButton && <button className='text-green-500 flex items-center gap-1'>View more <ArrowRight size={14} /></button>}
-            </Link>
+        <div className='flex flex-col items-center text-center'>
+            <div className='flex items-center gap-3'>
+                <h2 className='text-2xl sm:text-3xl font-medium text-slate-800'>{title}</h2>
+                {icon && <span className="flex items-center justify-center">{icon}</span>}
+                {visibleButton && <Link href={href} className='bg-slate-100 p-2 rounded-full hover:bg-slate-200 active:scale-95 transition'><ArrowRightIcon size={16} /></Link>}
+            </div>
+            <p className='text-slate-500 mt-2 max-w-xl'>{description}</p>
         </div>
     )
 }

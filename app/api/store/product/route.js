@@ -98,13 +98,9 @@ export async function PUT(request) {
             return NextResponse.json({ error: "Not authorized" }, { status: 401 });
         }
 
-        const { productId, stock } = await request.json();
+        const body = await request.json();
+        const { productId, stock, isHotDeal } = body;
 
-        if (!productId || stock === undefined || stock === null || isNaN(stock)) {
-            return NextResponse.json({ error: "Missing or invalid product details" }, { status: 400 });
-        }
-
-        // Ensure the product belongs to the seller's store before updating
         const product = await prisma.product.findFirst({
             where: {
                 id: productId,
@@ -116,13 +112,28 @@ export async function PUT(request) {
             return NextResponse.json({ error: "Product not found or you don't have permission to edit it." }, { status: 404 });
         }
 
-        // Update the stock
-        await prisma.product.update({
-            where: { id: productId },
-            data: { stock: stock },
-        });
+        // Scenario 1: Update stock
+        if (stock !== undefined) {
+            if (isNaN(stock)) {
+                return NextResponse.json({ error: "Invalid stock value" }, { status: 400 });
+            }
+            await prisma.product.update({
+                where: { id: productId },
+                data: { stock: Number(stock) },
+            });
+            return NextResponse.json({ message: "Stock updated successfully" });
+        }
 
-        return NextResponse.json({ message: "Stock updated successfully" });
+        // Scenario 2: Update Hot Deal status
+        if (typeof isHotDeal === 'boolean') {
+            await prisma.product.update({
+                where: { id: productId },
+                data: { isHotDeal },
+            });
+            return NextResponse.json({ message: "Hot Deal status updated" });
+        }
+
+        return NextResponse.json({ error: "Missing or invalid update details" }, { status: 400 });
     } catch (error) {
         console.error("Error updating stock:", error);
         return NextResponse.json({ error: error.message || "Failed to update stock" }, { status: 500 });
