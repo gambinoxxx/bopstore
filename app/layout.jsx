@@ -15,15 +15,21 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <ClerkProvider>
         <html lang="en">
             <body className={`${outfit.className} antialiased`}>
-                <StoreProvider>
-                    <Toaster />
-                    {children}
-                </StoreProvider>
+                <ClerkProvider
+                    appearance={{
+                        elements: {
+                            modalBackdrop: "bg-black/50",
+                        },
+                    }}
+                >
+                    <StoreProvider>
+                        <Toaster />
+                        {children}
+                    </StoreProvider>
+                </ClerkProvider>
             </body>
         </html>
-        </ClerkProvider>
     );
 }

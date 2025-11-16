@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast"
 import Image from "next/image"
 import Loading from "@/components/Loading"
 import { useAuth, useUser } from "@clerk/nextjs"
+import { Trash2 } from "lucide-react"
 import axios from "axios"
 
 export default function StoreManageProducts() {
@@ -66,6 +67,25 @@ export default function StoreManageProducts() {
         }
     };
 
+    const deleteProduct = async (productId) => {
+        // Ask for confirmation before deleting
+        if (!window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
+            return; // Stop if the user cancels
+        }
+
+        try {
+            const token = await getToken();
+            const { data } = await axios.delete(`/api/store/product?productId=${productId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(data.message || "Product deleted successfully.");
+            // Update the UI by removing the deleted product from the state
+            setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+        } catch (error) {
+            toast.error(error?.response?.data?.error || 'Failed to delete product.');
+        }
+    };
+
     useEffect(() => {
           if(isLoaded && user){
                fetchProducts()
@@ -86,6 +106,7 @@ export default function StoreManageProducts() {
                         <th className="px-4 py-3">Price</th>
                         <th className="px-4 py-3">Stock</th>
                         <th className="px-4 py-3">Hot Deal</th>
+                        <th className="px-4 py-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="text-slate-700">
@@ -129,6 +150,15 @@ export default function StoreManageProducts() {
                                     />
                                     <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
                                 </label>
+                            </td>
+                            <td className="px-4 py-3">
+                                <button 
+                                    onClick={() => deleteProduct(product.id)}
+                                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors"
+                                    title="Delete Product"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
                             </td>
                         </tr>
                     ))}

@@ -1,12 +1,15 @@
 'use client';
 
-import { XIcon, TagIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { assets } from '@/assets/assets';
+import { useAuth } from '@clerk/nextjs';
 
 const PromoPopup = () => {
     const [isOpen, setIsOpen] = useState(false);
+    // Use Clerk's auth hook to get the state of the modals.
+    const { openSignIn, openSignUp, isSignedIn } = useAuth();
 
     // --- CONFIGURATION ---
     // Easily change the promo message and the sessionStorage key here.
@@ -16,7 +19,8 @@ const PromoPopup = () => {
     useEffect(() => {
         // Check if the user has already closed the popup in this session.
         const hasBeenClosed = sessionStorage.getItem(SESSION_STORAGE_KEY);
-        if (!hasBeenClosed) {
+        // Also, don't show the popup if the user is already signed in.
+        if (!hasBeenClosed && !isSignedIn) {
             // If not, show the popup after a short delay to not overwhelm the user.
             const timer = setTimeout(() => {
                 setIsOpen(true);
@@ -24,7 +28,7 @@ const PromoPopup = () => {
             return () => clearTimeout(timer);
         }
     }, []);
-
+    
     const handleClose = () => {
         setIsOpen(false);
         // Remember that the user has closed the popup for this session.
@@ -32,7 +36,10 @@ const PromoPopup = () => {
     };
 
     if (!isOpen) {
-        return null;
+        return null; // Don't render if it's not time to show it.
+    }
+    if (openSignIn || openSignUp) {
+        return null; // *** This is the key fix: Don't render if a Clerk modal is open.
     }
 
     return (
@@ -49,7 +56,17 @@ const PromoPopup = () => {
                     className="w-full h-auto object-cover"
                 />
                 <div className="p-6">
-                    <p className="text-lg font-semibold text-slate-700">{PROMO_MESSAGE}</p>
+                    <p className="text-lg font-semibold text-slate-700 mb-4">{PROMO_MESSAGE}</p>
+                    <button
+                        onClick={() => {
+                            handleClose();
+                            // For a better user experience, directly open the sign-in modal.
+                            openSignIn();
+                        }}
+                        className="bg-slate-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-700 transition-transform transform hover:scale-105"
+                    >
+                        Sign Up & Claim
+                    </button>
                 </div>
             </div>
         </div>
