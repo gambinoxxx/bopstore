@@ -2,6 +2,7 @@
 import Banner from "@/components/Banner";
 import Navbar from "@/components/Navbar";
 import MobileSearch from "@/components/MobileSearch";
+import PromoPopup from "@/components/PromoPopup"; // Import the new component
 import Footer from "@/components/Footer";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -45,6 +46,7 @@ export default function PublicLayout({ children }) {
             <Navbar />
             <MobileSearch />
             {children}
+            <PromoPopup /> {/* Add the popup here */}
             <WhatsAppWidget /> {/* Add the widget here */}
             <Footer />
         </>

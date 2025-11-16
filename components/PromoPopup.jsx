@@ -1,0 +1,59 @@
+'use client';
+
+import { XIcon, TagIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { assets } from '@/assets/assets';
+
+const PromoPopup = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    // --- CONFIGURATION ---
+    // Easily change the promo message and the sessionStorage key here.
+    const PROMO_MESSAGE = "🎉 Black Friday Sale! Get 25% off on all electronics. Use code: BF25";
+    const SESSION_STORAGE_KEY = 'promoPopupClosed_v1'; // Change this key to force the popup to show again for all users.
+
+    useEffect(() => {
+        // Check if the user has already closed the popup in this session.
+        const hasBeenClosed = sessionStorage.getItem(SESSION_STORAGE_KEY);
+        if (!hasBeenClosed) {
+            // If not, show the popup after a short delay to not overwhelm the user.
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+            }, 2000); // 2-second delay
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
+    const handleClose = () => {
+        setIsOpen(false);
+        // Remember that the user has closed the popup for this session.
+        sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
+    };
+
+    if (!isOpen) {
+        return null;
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div className="relative max-w-md w-full bg-white rounded-lg shadow-2xl animate-scale-in text-center overflow-hidden">
+                <button onClick={handleClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-800 transition-colors z-10 bg-white/50 rounded-full p-1">
+                    <XIcon size={24} />
+                </button>
+                <Image
+                    src={assets.img6}
+                    alt="Promotional Offer"
+                    width={450}
+                    height={250}
+                    className="w-full h-auto object-cover"
+                />
+                <div className="p-6">
+                    <p className="text-lg font-semibold text-slate-700">{PROMO_MESSAGE}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default PromoPopup;
