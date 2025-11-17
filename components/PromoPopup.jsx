@@ -43,7 +43,7 @@ const PromoPopup = () => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="relative max-w-md w-full bg-white rounded-lg shadow-2xl animate-scale-in text-center overflow-hidden">
                 <button onClick={handleClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-800 transition-colors z-10 bg-white/50 rounded-full p-1">
                     <XIcon size={24} />
