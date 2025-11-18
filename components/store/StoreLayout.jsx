@@ -17,27 +17,26 @@ const StoreLayout = ({ children }) => {
     const [loading, setLoading] = useState(true)
     const [storeInfo, setStoreInfo] = useState(null)
 
-    const fetchIsSeller = async () => {
-        try {
-            const token = await getToken()
-            const {data} = await axios.get('/api/store/is-seller',{headers:{
-                Authorization: `Bearer ${token}`
-            }})
-            setIsSeller(data.isSeller)
-            setStoreInfo(data.storeInfo)
-        } catch (error) {
-            console.log(error)
-        }
-        finally{
-            setLoading(false)
-        }
-    }
-
     useEffect(() => {
         if (isLoaded) {
+            const fetchIsSeller = async () => {
+                try {
+                    const token = await getToken()
+                    const {data} = await axios.get('/api/store/is-seller',{headers:{
+                        Authorization: `Bearer ${token}`
+                    }})
+                    setIsSeller(data.isSeller)
+                    setStoreInfo(data.storeInfo)
+                } catch (error) {
+                    console.log(error)
+                }
+                finally{
+                    setLoading(false)
+                }
+            }
             fetchIsSeller()
         }
-    }, [isLoaded])
+    }, [isLoaded, getToken])
 
     return loading ? (
         <Loading />

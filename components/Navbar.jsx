@@ -1,7 +1,7 @@
 'use client'
 import { Flame, Menu, PackageIcon, Search, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useUser, UserButton, Protect, SignInButton } from "@clerk/nextjs";
@@ -9,6 +9,7 @@ import { useUser, UserButton, Protect, SignInButton } from "@clerk/nextjs";
 const Navbar = () => {
     const { user } = useUser();
     const router = useRouter();
+    const pathname = usePathname();
 
     const [search, setSearch] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,7 +31,7 @@ const Navbar = () => {
     useEffect(() => {
         // Close menu on route change
         setIsMenuOpen(false);
-    }, [router]);
+    }, [pathname]);
 
     return (
         <nav className="relative bg-white">
