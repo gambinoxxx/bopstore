@@ -17,28 +17,27 @@ export default function PublicLayout({ children }) {
     
     const {user} = useUser();
     const dispatch = useDispatch();
-    const {getToken} = useAuth();
+    const { getToken } = useAuth();
 
     const {cartItems} = useSelector((state)=>state.cart)
 
     useEffect(() =>{
-       
         dispatch(fetchProducts({}))
-    },[])
+    },[dispatch])
     
      useEffect(() =>{
        if (user){
-        dispatch(fetchCart({getToken}))
-        dispatch(fetchAddress({getToken}))
-        dispatch(fetchUserRatings({getToken}))
+            dispatch(fetchCart({getToken}))
+            dispatch(fetchAddress({getToken}))
+            dispatch(fetchUserRatings({getToken}))
        }
-    },[user])
+    },[user, getToken, dispatch])
 
      useEffect(() =>{
        if (user){
-        dispatch(uploadCart({getToken}))
+            dispatch(uploadCart({getToken}))
        }
-    },[cartItems])
+    },[cartItems, user, getToken, dispatch])
 
     return (
         <>
