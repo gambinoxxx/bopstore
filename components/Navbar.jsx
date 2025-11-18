@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useUser, useClerk, UserButton, Protect } from "@clerk/nextjs";
+import { useUser, UserButton, Protect, SignInButton } from "@clerk/nextjs";
 
 const Navbar = () => {
     const { user } = useUser();
-    const { openSignIn } = useClerk();
     const router = useRouter();
 
     const [search, setSearch] = useState('');
@@ -76,9 +75,11 @@ const Navbar = () => {
                         </Link>
 
                         {!user ? (
-                            <button onClick={() => openSignIn()} className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
-                                Login
-                            </button>
+                            <SignInButton mode="modal">
+                                <button className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
+                                    Login
+                                </button>
+                            </SignInButton>
                         ) : (
                             <UserButton afterSignOutUrl="/">
                                 <UserButton.MenuItems>
@@ -98,7 +99,9 @@ const Navbar = () => {
                         {user ? (
                             <UserButton afterSignOutUrl="/" />
                         ) : (
-                            <button onClick={() => openSignIn()} className="text-sm font-medium text-slate-600">Login</button>
+                            <SignInButton mode="modal">
+                                <button className="text-sm font-medium text-slate-600">Login</button>
+                            </SignInButton>
                         )}
 
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="z-50">
