@@ -3,11 +3,13 @@ import { Flame, Menu, PackageIcon, Search, ShoppingCart, X } from "lucide-react"
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { useSelector } from "react-redux";
-import { useUser, UserButton, Protect, SignInButton } from "@clerk/nextjs";
+import { useUser, UserButton, Protect, SignInButton, useAuth } from "@clerk/nextjs";
 
 const Navbar = () => {
     const { user } = useUser();
+    const { getToken } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -15,6 +17,7 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const cartCount = useSelector(state => state.cart.total);
 
+    const [isSeller, setIsSeller] = useState(false);
     const handleSearch = (e) => {
         e.preventDefault();
         // Prevent empty search
@@ -31,7 +34,22 @@ const Navbar = () => {
     useEffect(() => {
         // Close menu on route change
         setIsMenuOpen(false);
-    }, [pathname]);
+
+        const fetchSellerStatus = async () => {
+            if (user) {
+                try {
+                    const token = await getToken();
+                    const { data } = await axios.get('/api/store/is-seller', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setIsSeller(data.isSeller);
+                } catch (error) {
+                    console.error("Failed to fetch seller status", error);
+                }
+            }
+        };
+        fetchSellerStatus();
+    }, [pathname, user, getToken]);
 
     return (
         <nav className="relative bg-white">
@@ -76,7 +94,7 @@ const Navbar = () => {
                         </Link>
 
                         {!user ? (
-                            <SignInButton mode="modal">
+                            <SignInButton>
                                 <button className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
                                     Login
                                 </button>
@@ -85,6 +103,9 @@ const Navbar = () => {
                             <UserButton afterSignOutUrl="/">
                                 <UserButton.MenuItems>
                                     <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() => router.push('/orders')} />
+                                    {isSeller && (
+                                        <UserButton.Action labelIcon={<PackageIcon size={16} />} label="Seller Dashboard" onClick={() => router.push('/store')} />
+                                    )}
                                 </UserButton.MenuItems>
                             </UserButton>
                         )}
@@ -100,7 +121,7 @@ const Navbar = () => {
                         {user ? (
                             <UserButton afterSignOutUrl="/" />
                         ) : (
-                            <SignInButton mode="modal">
+                            <SignInButton>
                                 <button className="text-sm font-medium text-slate-600">Login</button>
                             </SignInButton>
                         )}
@@ -124,7 +145,12 @@ const Navbar = () => {
                     </Link>
                     <hr className="w-3/4 border-slate-200" />
                     {user ? (
-                        <Link href="/orders" onClick={() => setIsMenuOpen(false)}>My Orders</Link>
+                        <>
+                            <Link href="/orders" onClick={() => setIsMenuOpen(false)}>My Orders</Link>
+                            {isSeller && (
+                                <Link href="/store" onClick={() => setIsMenuOpen(false)}>Seller Dashboard</Link>
+                            )}
+                        </>
                     ) : null}
                     {/* The login button is now outside the menu, so it's removed from here. */}
                 </div>
