@@ -73,7 +73,8 @@ const OrderSummary = ({ totalPrice, items }) => {
             addressId: selectedAddress.id,
             items,
             paymentMethod,
-            totalAmount: finalAmount // Send the final calculated amount
+            totalAmount: finalAmount, // Send the final calculated amount
+            status: paymentMethod === 'PAYSTACK' ? 'PENDING_PAYMENT' : 'CONFIRMED' // Set initial status
         }
         if (coupon){
             orderData.couponCode = coupon.code;

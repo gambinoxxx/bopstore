@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import prisma from '@/lib/prisma';
-import { fulfillOrders } from '@/lib/payment-utils';
+import prisma from '@/lib/prisma'; // Assuming you use Prisma
 
 export async function POST(request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -25,15 +24,37 @@ export async function POST(request) {
   // 2. Handle the 'charge.success' event
   if (event.event === 'charge.success') {
     const { metadata, reference } = event.data;
+    const orderId = metadata.orderId; // Expect a single orderId from metadata
 
-    // Metadata should contain your order and user IDs
-    const orderIds = metadata.orderIds.split(',');
-    const userId = metadata.userId;
-
-    console.log(`Webhook: Processing successful charge for reference: ${reference}, orderIds: ${orderIds}`);
+    // Ensure orderId is present
+    if (!orderId) {
+      console.error('Paystack Webhook Error: orderId not found in metadata');
+      return NextResponse.json({ error: 'Missing orderId in metadata' }, { status: 400 });
+    }
+    
+    console.log(`Webhook: Processing successful charge for reference: ${reference}, orderId: ${orderId}`);
 
     try {
-      await fulfillOrders(orderIds, userId);
+      // Find the order that was pending
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { orderItems: true }, // Include items to update stock
+      });
+
+      // Only proceed if the order exists and is still pending
+      if (order && order.status === 'PENDING_PAYMENT') {
+        // 1. Update order status to CONFIRMED
+        await prisma.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } });
+
+        // 2. Decrement the stock for each item in the order
+        for (const item of order.orderItems) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+        console.log(`Order ${orderId} confirmed and stock updated.`);
+      }
     } catch (error) {
       console.error('Error processing charge.success webhook:', error);
       // Return a 500 to signal to Paystack that the webhook failed and should be retried.
