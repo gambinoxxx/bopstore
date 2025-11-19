@@ -1,90 +1,66 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function POST(req) {
- const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
- 
- if (!WEBHOOK_SECRET) {
-  throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local'); 
-}
+  // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
-    // Get the headers
-    const headerPayload = headers();
-    const svix_id = headerPayload.get("svix-id");
-    const svix_timestamp = headerPayload.get("svix-timestamp");
-    const svix_signature = headerPayload.get("svix-signature");
+  if (!WEBHOOK_SECRET) {
+    throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local');
+  }
 
-    if (!svix_id || !svix_timestamp || !svix_signature) {
-        return new Response('Error occured -- no svix headers', {
-            status: 400
-        });
-    }
+  // Get the headers
+  const headerPayload = headers();
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
 
-    // Get the body
-    const payload = await req.json();
-    const body = JSON.stringify(payload);
+  // If there are no headers, error out
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return new Response('Error occured -- no svix headers', {
+      status: 400
+    });
+  }
 
-// Create a new Svix instance with your secret.
- const wh = new Webhook(WEBHOOK_SECRET);
+  // Get the body
+  const payload = await req.json();
+  const body = JSON.stringify(payload);
 
- let evt;
+  // Create a new Svix instance with your secret.
+  const wh = new Webhook(WEBHOOK_SECRET);
 
-    // Verify the payload with the headers
-    try {
-        evt = wh.verify(body, {
-            "svix-id": svix_id,
-            "svix-timestamp": svix_timestamp,
-            "svix-signature": svix_signature,
-        });
-    } catch (err) {
-        console.error('Error verifying webhook:', err);
-        return new Response('Error occured', {
-            status: 400
-        });
-    }
+  let evt;
 
-    const eventType = evt.type;
+  // Verify the payload with the headers
+  try {
+    evt = wh.verify(body, {
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    });
+  } catch (err) {
+    console.error('Error verifying webhook:', err);
+    return new Response('Error occured', {
+      status: 400
+    });
+  }
 
-    // Using a switch for better readability and organization
-    switch (eventType) {
-        case 'user.created':
-        case 'user.updated': {
-            const { id, email_addresses, image_url, first_name, last_name } = evt.data;
+  const { id } = evt.data;
+  const eventType = evt.type;
 
-            // Use upsert to handle both creation and updates in one go.
-            // This is more resilient, as it can handle webhooks arriving out of order.
-            await prisma.user.upsert({
-                where: { id: id },
-                update: {
-                    email: email_addresses[0].email_address,
-                    name: `${first_name} ${last_name}`.trim() || 'New User',
-                    image: image_url,
-                },
-                create: {
-                    id: id,
-                    email: email_addresses[0].email_address,
-                    name: `${first_name} ${last_name}`.trim() || 'New User',
-                    image: image_url,
-                },
-            });
+  if (eventType === 'user.created') {
+    await prisma.user.create({
+      data: {
+        id: evt.data.id,
+        email: evt.data.email_addresses[0].email_address,
+        name: `${evt.data.first_name} ${evt.data.last_name}`,
+        image: evt.data.image_url,
+      },
+    });
+  }
 
-            const message = eventType === 'user.created' ? 'User created.' : 'User updated.';
-            const status = eventType === 'user.created' ? 201 : 200;
-            return NextResponse.json({ success: true, message }, { status });
-        }
-
-        case 'user.deleted': {
-            const { id } = evt.data;
-            // Use deleteMany to avoid errors if the user is already deleted.
-            await prisma.user.deleteMany({
-                where: { id: id },
-            });
-
-            return NextResponse.json({ success: true, message: 'User deleted.' }, { status: 200 });
-        }
-    }
-
-return NextResponse.json({ success: false, message: 'Unhandled event type.' }, { status: 400 });
+  console.log(`Webhook with an ID of ${id} and type of ${eventType} processed`);
+  
+  return new Response('', { status: 200 });
 }
