@@ -1,12 +1,12 @@
 import { PlusIcon, SquarePenIcon, XIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import AddressModal from './AddressModal';
-import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { clearCart } from '@/lib/features/cart/cartSlice';
 import { Protect, useAuth, useUser } from '@clerk/nextjs';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
 
 const DELIVERY_FEE = 3500;
 
@@ -22,7 +22,7 @@ const OrderSummary = ({ totalPrice, items }) => {
 
     const addressList = useSelector(state => state.address.list);
 
-    const [paymentMethod, setPaymentMethod] = useState('COD');
+    const [paymentMethod, setPaymentMethod] = useState('PAYSTACK');
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -65,7 +65,7 @@ const OrderSummary = ({ totalPrice, items }) => {
             return toast('please login to place an order');
         }
          if (!selectedAddress) {
-            return toast('please lselect an address to place an order');
+            return toast('please select an address to place an order');
         }
         const token = await getToken();
 
@@ -74,7 +74,7 @@ const OrderSummary = ({ totalPrice, items }) => {
             items,
             paymentMethod,
             totalAmount: finalAmount, // Send the final calculated amount
-            status: paymentMethod === 'PAYSTACK' ? 'PENDING_PAYMENT' : 'CONFIRMED' // Set initial status
+            status: paymentMethod === 'PAYSTACK' ? 'PENDING_PAYMENT' : 'ORDER_PLACED' // Set initial status
         }
         if (coupon){
             orderData.couponCode = coupon.code;
@@ -98,10 +98,11 @@ const OrderSummary = ({ totalPrice, items }) => {
         <div className='w-full max-w-lg lg:max-w-[340px] bg-slate-50/30 border border-slate-200 text-slate-500 text-sm rounded-xl p-7'>
             <h2 className='text-xl font-medium text-slate-600'>Payment Summary</h2>
             <p className='text-slate-400 text-xs my-4'>Payment Method</p>
-            <div className='flex gap-2 items-center'>
+            {/* Temporarily hiding the Cash on Delivery option */}
+            {/* <div className='flex gap-2 items-center'>
                 <input type="radio" id="COD" onChange={() => setPaymentMethod('COD')} checked={paymentMethod === 'COD'} className='accent-gray-500' />
                 <label htmlFor="COD" className='cursor-pointer'>COD</label>
-            </div>
+            </div> */}
             <div className='flex gap-2 items-center mt-1'>
                 <input type="radio" id="PAYSTACK" name='payment' onChange={() => setPaymentMethod('PAYSTACK')} checked={paymentMethod === 'PAYSTACK'} className='accent-gray-500' />
                 <label htmlFor="PAYSTACK" className='cursor-pointer'>Paystack</label>

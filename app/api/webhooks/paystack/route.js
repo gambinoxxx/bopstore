@@ -43,8 +43,8 @@ export async function POST(request) {
 
       // Only proceed if the order exists and is still pending
       if (order && order.status === 'PENDING_PAYMENT') {
-        // 1. Update order status to CONFIRMED
-        await prisma.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } });
+        // 1. Update order status to ORDER_PLACED
+        await prisma.order.update({ where: { id: orderId }, data: { status: 'ORDER_PLACED' } });
 
         // 2. Decrement the stock for each item in the order
         for (const item of order.orderItems) {

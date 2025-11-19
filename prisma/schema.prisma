@@ -45,10 +45,12 @@ model Product {
 }
 
 enum OrderStatus {
+    PENDING_PAYMENT
     ORDER_PLACED
     PROCESSING
     SHIPPED
     DELIVERED
+    CANCELLED
 }
 
 enum PaymentMethod {
@@ -60,7 +62,7 @@ enum PaymentMethod {
 model Order {
     id            String        @id @default(cuid())
     total         Float
-    status        OrderStatus   @default(ORDER_PLACED)
+    status        OrderStatus
     userId        String
     storeId       String
     addressId     String

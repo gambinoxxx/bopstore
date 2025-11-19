@@ -13,7 +13,7 @@ export async function POST(request) {
         if (!userId) {
             return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
         }
-        const {addressId, items, couponCode, paymentMethod, totalAmount} = await request.json();
+        const {addressId, items, couponCode, paymentMethod, totalAmount, status} = await request.json();
 
         //check if all requred fields are present 
         if(!addressId || !items || !Array.isArray(items) || !paymentMethod || items.length === 0){
@@ -96,6 +96,7 @@ export async function POST(request) {
                 addressId,
                 total,
                 paymentMethod,
+                status, // Save the status ('PENDING_PAYMENT' or 'CONFIRMED')
                 isCouponUsed: !!coupon,
                 coupon: coupon ? coupon : {},
                 orderItems: {
@@ -108,26 +109,35 @@ export async function POST(request) {
             });
         }
 
-        // Prepare stock update operations
-        const stockUpdateOperations = items.map(item =>
-            prisma.product.update({
-                where: { id: item.id },
-                data: { stock: { decrement: item.quantity } },
-            })
-        );
+        let createdOrders;
 
-        // --- DATA INTEGRITY FIX: Use a transaction to create orders ---
-        const createdOrders = await prisma.$transaction(
-            [...orderCreationData.map(data => prisma.order.create({ data })), ...stockUpdateOperations]
-        );
+        // --- THE CRITICAL FIX ---
+        // Only decrement stock if the order is confirmed (e.g., Cash on Delivery)
+        if (status === 'ORDER_PLACED') {
+            const stockUpdateOperations = items.map(item =>
+                prisma.product.update({
+                    where: { id: item.id },
+                    data: { stock: { decrement: item.quantity } },
+                })
+            );
+
+            // Use a transaction to create orders AND update stock together
+            createdOrders = await prisma.$transaction(
+                [...orderCreationData.map(data => prisma.order.create({ data })), ...stockUpdateOperations]
+            );
+        } else {
+            // For 'PENDING_PAYMENT', just create the orders without touching stock
+            createdOrders = await prisma.$transaction(
+                orderCreationData.map(data => prisma.order.create({ data }))
+            );
+        }
 
         const orderIds = createdOrders.map(order => order.id);
 
         if (paymentMethod === 'PAYSTACK') {
             const paystackInstance = paystack(process.env.PAYSTACK_SECRET_KEY);
             const origin = request.headers.get('origin');
-
-            // Find user's email for Paystack
+            
             const user = await prisma.user.findUnique({ where: { id: userId } });
             if (!user) {
                 return NextResponse.json({ error: 'User not found' }, { status: 404 });
