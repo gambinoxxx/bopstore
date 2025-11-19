@@ -18,7 +18,6 @@ export default function RootLayout({ children }) {
         <html lang="en">
             <body className={`${outfit.className} antialiased`}>
                 <ClerkProvider
-                    proxyUrl="https://accounts.bopstore.com.ng"
                     appearance={{
                         elements: {
                             modalBackdrop: "bg-black/50",

@@ -94,7 +94,7 @@ const Navbar = () => {
                         </Link>
 
                         {!user ? (
-                            <SignInButton>
+                            <SignInButton mode="modal">
                                 <button className="px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full">
                                     Login
                                 </button>
@@ -121,7 +121,7 @@ const Navbar = () => {
                         {user ? (
                             <UserButton afterSignOutUrl="/" />
                         ) : (
-                            <SignInButton>
+                            <SignInButton mode="modal">
                                 <button className="text-sm font-medium text-slate-600">Login</button>
                             </SignInButton>
                         )}
