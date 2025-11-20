@@ -21,19 +21,23 @@ export default function PublicLayout({ children }) {
 
     const {cartItems} = useSelector((state)=>state.cart)
 
-    useEffect(() => {
-        // Always fetch the product list
+    useEffect(() =>{
         dispatch(fetchProducts({}))
-
-        // If a user is logged in, fetch their data and sync the cart
-        if (user) {
+    },[dispatch])
+    
+     useEffect(() =>{
+       if (user){
             dispatch(fetchCart({getToken}))
             dispatch(fetchAddress({getToken}))
             dispatch(fetchUserRatings({getToken}))
+       }
+    },[user, getToken, dispatch])
+
+     useEffect(() =>{
+       if (user){
             dispatch(uploadCart({getToken}))
-        }
-        // This effect runs when the user logs in/out or when cartItems change for an authenticated user.
-    }, [user, getToken, dispatch, cartItems]);
+       }
+    },[cartItems, user, getToken, dispatch])
 
     return (
         <>

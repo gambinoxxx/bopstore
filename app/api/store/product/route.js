@@ -76,7 +76,8 @@ export async function GET(request){
         }
         const products = await prisma.product.findMany({
             where: {
-                storeId
+                storeId,
+                isArchived: false // Only show non-archived products to the seller
             }
         })
         return NextResponse.json({products})
@@ -137,5 +138,35 @@ export async function PUT(request) {
     } catch (error) {
         console.error("Error updating stock:", error);
         return NextResponse.json({ error: error.message || "Failed to update stock" }, { status: 500 });
+    }
+}
+
+// soft delete a product (archive)
+export async function DELETE(request) {
+    try {
+        const { userId } = getAuth(request);
+        const storeId = await authSeller(userId);
+
+        if (!storeId) {
+            return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const productId = searchParams.get('productId');
+
+        if (!productId) {
+            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        }
+
+        // Perform a "soft delete" by archiving the product
+        await prisma.product.update({
+            where: { id: productId, storeId: storeId }, // Ensure seller can only archive their own product
+            data: { isArchived: true },
+        });
+
+        return NextResponse.json({ message: 'Product archived successfully' });
+    } catch (error) {
+        console.error("Error archiving product:", error);
+        return NextResponse.json({ error: "Failed to archive product" }, { status: 500 });
     }
 }

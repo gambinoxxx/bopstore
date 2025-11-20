@@ -6,6 +6,7 @@ export async function GET(request) {
         const products = await prisma.product.findMany({
             where: {
                 // Let the database do the filtering for better performance
+                isArchived: false,
                 store: {
                     isActive: true,
                 },
