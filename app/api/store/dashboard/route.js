@@ -9,33 +9,44 @@ export async function GET(request) {
         const {userId} = getAuth(request)
         const storeId = await authSeller(userId)
 
-        //get all orders for seller
-        const orders = await prisma.order.findMany({
+        if (!storeId) {
+            return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
+        }
+
+        // Get only PAID orders to calculate earnings and count
+        const paidOrders = await prisma.order.findMany({
             where: {
-                storeId}
-        })
-        //get all products with ratings for seller 
-        const products = await prisma.product.findMany({
+                storeId,
+                isPaid: true // This is the crucial fix
+            }
+        });
+
+        // Get total product count for the store
+        const totalProducts = await prisma.product.count({
             where: { storeId}
-        })
-        const productIds = products.map(product => product.id)
+        });
+
+        // Get recent ratings for the store's products
         const ratings = await prisma.rating.findMany({
-
-            where: { productId: { in: productIds } },
-            include: {user: true, product: true}
-
-        })
+            where: { product: { storeId: storeId } },
+            orderBy: { createdAt: 'desc' },
+            take: 5, // Fetch the 5 most recent ratings
+            include: { user: { select: { name: true, image: true } }, product: { select: { name: true } } }
+        });
+        
+        const totalEarnings = paidOrders.reduce((acc, order) => acc + order.total, 0);
+        
         const dashboardData = {
             ratings,
-            totalOrders: orders.length,
-            totalEarnings: Math.round(orders.reduce((acc, order) => acc + order.total,0)),
-            totalProducts: products.length
+            totalOrders: paidOrders.length,
+            totalEarnings: totalEarnings,
+            totalProducts: totalProducts
         }
         return NextResponse.json({dashboardData});
 
     }
     catch (error){
-        console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status: 400})
+        console.error("[SELLER_DASHBOARD_GET]", error);
+        return NextResponse.json({error: "Internal Server Error"}, {status: 500})
     }
 }
