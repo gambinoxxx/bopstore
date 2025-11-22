@@ -13,7 +13,7 @@ const PromoPopup = () => {
 
     // --- CONFIGURATION ---
     // Easily change the promo message and the sessionStorage key here.
-    const PROMO_MESSAGE = "🎉 Black Friday Sale! Get 25% off on all electronics. Use code: BF25";
+    const PROMO_MESSAGE = "‧₊˚🎄✩ ₊˚🦌⊹♡ Xmas sales! Get festive discounts Get 10% off on all products. Use code: MERRY10";
     const SESSION_STORAGE_KEY = 'promoPopupClosed_v1'; // Change this key to force the popup to show again for all users.
 
     useEffect(() => {

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs";
 
 export async function GET(request, { params }) {
     try {
@@ -42,5 +43,58 @@ export async function GET(request, { params }) {
     } catch (error) {
         console.error('[PRODUCT_GET]', error);
         return new NextResponse("Internal Server Error", { status: 500 });
+    }
+}
+
+export async function PATCH(request, { params }) {
+    try {
+        const { userId } = auth();
+        const body = await request.json();
+        const { productId } = params;
+
+        const { name, description, price, mrp, category, images, stock, isArchived, specifications } = body;
+
+        if (!userId) {
+            return new NextResponse("Unauthenticated", { status: 401 });
+        }
+
+        if (!productId) {
+            return new NextResponse("Product ID is required", { status: 400 });
+        }
+
+        // Verify the user owns the store for this product
+        const storeByUserId = await prisma.store.findFirst({
+            where: {
+                id: body.storeId, // Assuming storeId is sent in the body
+                userId,
+            }
+        });
+
+        if (!storeByUserId) {
+            return new NextResponse("Unauthorized", { status: 403 });
+        }
+
+        const product = await prisma.product.update({
+            where: {
+                id: productId,
+            },
+            data: {
+                name,
+                description,
+                price,
+                mrp,
+                category,
+                images,
+                stock,
+                isArchived,
+                specifications, // This is the new field we are saving
+            }
+        });
+
+        return NextResponse.json(product);
+
+    } catch (error) {
+        console.error('[PRODUCT_PATCH]', error);
+        return new NextResponse("Internal error", { status: 500 });
     }
 }

@@ -20,6 +20,10 @@ export async function GET(request){
         const stores = await prisma.store.count();
         //get all orders include only createdAd and total &calculate total revenue
         const allOrders = await prisma.order.findMany({
+            where: {
+                // Only include paid orders in revenue calculation
+                isPaid: true,
+            },
             select:{
                 createdAt:true,
                 total:true,
@@ -47,5 +51,3 @@ export async function GET(request){
     }
     
 }
-
-

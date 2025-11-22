@@ -22,6 +22,7 @@ export async function POST(request) {
         const price = Number(formData.get("price"))
         const category = formData.get("category")
         const images = formData.getAll("images")
+        const specificationsString = formData.get("specifications");
 
         if (!name || !description || !mrp || !price || !category || !images){
             return NextResponse.json({error: "missing product details"}, {status: 400})
@@ -44,6 +45,10 @@ export async function POST(request) {
             })
             return url
         }))
+
+        // Parse the specifications string back into a JSON object
+        const specifications = specificationsString ? JSON.parse(specificationsString) : {};
+
         await prisma.product.create({
             data:{
                 name,
@@ -52,7 +57,8 @@ export async function POST(request) {
                 price,
                 category,
                 images: imagesUrl,
-                storeId
+                storeId,
+                specifications, // Add the parsed object here
             }
         })
         return NextResponse.json({message: "product added successfully"})   
