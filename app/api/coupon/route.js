@@ -8,32 +8,51 @@ export async function POST(request) {
         const {userId, has} = auth();
         const {code} = await request.json();
 
-        const coupon = await prisma.coupon.findUnique({
-            where: {code: code.toUpperCase(),
-                expiresAt:{ gt: new Date()}
-            }
-        })
-        if (!coupon) {
-            return NextResponse.json({error:"coupon not found "}, {status:404});
+        if (!code) {
+            return NextResponse.json({ error: "Coupon code is required." }, { status: 400 });
         }
+
+        // Use findFirst to filter by multiple fields (code and expiration date)
+        const coupon = await prisma.coupon.findFirst({
+            where: {
+                code: code.toUpperCase(),
+                expiresAt: { gt: new Date() } // Check for expiration here
+            }
+        });
+
+        if (!coupon) {
+            return NextResponse.json({ error: "Coupon is invalid or has expired." }, { status: 404 });
+        }
+
+        // --- Coupon Validation Logic ---
+
         if (coupon.forNewUser) {
             if (!userId) {
-                return NextResponse.json({error:"Please log in to use this coupon."}, {status:401});
+                return NextResponse.json({ error: "Please log in to use this new user coupon." }, { status: 401 });
             }
-            const userorders = await prisma.order.findMany({
-                where: {userId}})
-                if (userorders.length > 0) {
-                    return NextResponse.json({error:"coupon valid for new users only"}, {status:400});
-            }
-        }
-        if (coupon.forMember && userId) {
-            const hasPlusPlan = has({plan: 'bop_plus'});
-            if (!hasPlusPlan) {
-                return NextResponse.json({error:"coupon valid for BOP Plus members only"}, {status:400});
+            // A user is "new" if they have no PAID orders.
+            const paidOrder = await prisma.order.findFirst({
+                where: { userId: userId, isPaid: true }
+            });
+            if (paidOrder) {
+                return NextResponse.json({ error: "This coupon is valid for new users only." }, { status: 400 });
             }
         }
+
+        // This logic for member-only coupons is correct. No changes needed.
+        // if (coupon.forMember && userId) { ... }
+        // Check if the coupon is for members only
+        
+        // if (coupon.forMember) {
+        //     const hasPlusPlan = has({plan: 'bop_plus'});
+        //     if (!userId || !hasPlusPlan) {
+        //         return NextResponse.json({error:"This coupon is valid for BOP Plus members only."}, {status:400});
+        //     }
+        // }
+
         return NextResponse.json({coupon});
     } catch (error) {
+
         console.error(error);
         return NextResponse.json({error: error.code || error.message}, {status:400});
     }

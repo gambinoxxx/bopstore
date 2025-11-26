@@ -28,20 +28,42 @@ const ProductDetails = ({ product }) => {
     const averageRating = product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length;
     
     return (
-        <div className="flex max-lg:flex-col gap-12">
-            <div className="flex max-sm:flex-col-reverse gap-3">
-                <div className="flex sm:flex-col gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
+            {/* --- IMAGE GALLERY --- */}
+            <div>
+                {/* Main Image Display */}
+                <div className="w-full h-[314px] md:h-[441px] relative mb-4 border rounded-lg shadow-sm overflow-hidden p-4 bg-slate-50">
+                    <Image
+                        src={mainImage}
+                        alt={product.name}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority
+                    />
+                </div>
+
+                {/* Thumbnail Selector */}
+                <div className="flex gap-3">
                     {product.images.map((image, index) => (
-                        <div key={index} onClick={() => setMainImage(product.images[index])} className="bg-slate-100 flex items-center justify-center size-26 rounded-lg group cursor-pointer">
-                            <Image src={image} className="group-hover:scale-103 group-active:scale-95 transition" alt="" width={45} height={45} />
+                        <div
+                            key={index}
+                            onClick={() => setMainImage(product.images[index])}
+                            className={`w-20 h-20 relative rounded-md cursor-pointer border-2 transition-all ${mainImage === image ? 'border-slate-800' : 'border-slate-200 hover:border-slate-400'}`}
+                        >
+                            <Image
+                                src={image}
+                                alt={`Thumbnail ${index + 1}`}
+                                fill
+                                className="object-contain"
+                                sizes="5rem"
+                            />
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg ">
-                    <Image src={mainImage} alt="" width={250} height={250} />
-                </div>
             </div>
-            <div className="flex-1">
+            {/* --- PRODUCT INFORMATION --- */}
+            <div className="flex-1 flex flex-col">
                 <h1 className="text-3xl font-semibold text-slate-800">{product.name}</h1>
                 <div className='flex items-center mt-2'>
                     {Array(5).fill('').map((_, index) => (
