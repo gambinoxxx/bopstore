@@ -63,7 +63,7 @@ export default function Orders() {
                         </thead>
                         <tbody>
                             {orders.map((order) => (
-                                <OrderItem order={order} key={order.id} />
+                                <OrderItem order={order} key={order.id} isClickable={false} />
                             ))}
                         </tbody>
                     </table>

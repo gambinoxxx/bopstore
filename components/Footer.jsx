@@ -32,7 +32,7 @@ const Footer = () => {
             links: [
                 { text: "+234-903-591-4544", path: '/', icon: PhoneIcon },
                 { text: "gambino@bopstore.com.ng", path: '/', icon: MailIcon },
-                { text: "4 Dorishamu close", path: '/', icon: MapPinIcon }
+                // { text: "4 Dorishamu close", path: '/', icon: MapPinIcon }
             ]
         }
     ];
