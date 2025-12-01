@@ -37,7 +37,10 @@ export async function POST(request) {
                 return NextResponse.json({error:"Please log in to use this coupon."}, {status:401});
             }
             const userorders = await prisma.order.findMany({
-                where: {userId}})
+                where: {
+                    userId,
+                    isPaid: true // --- FIX: Only count paid orders ---
+                }})
                 if (userorders.length > 0) {
                     return NextResponse.json({error:"coupon valid for new users only"}, {status:400});
             }
