@@ -36,8 +36,7 @@ export async function GET(request) {
         return NextResponse.json({error: 'not authorized'}, {status: 401})
     }
     const orders =  await prisma.order.findMany({
-        where: {storeId: StoreId},
-        // --- FIX: Only show paid/actionable orders to the seller ---
+
         where: {
             storeId: StoreId,
             NOT: {
