@@ -37,6 +37,13 @@ export async function GET(request) {
     }
     const orders =  await prisma.order.findMany({
         where: {storeId: StoreId},
+        // --- FIX: Only show paid/actionable orders to the seller ---
+        where: {
+            storeId: StoreId,
+            NOT: {
+                status: 'PENDING_PAYMENT' // Exclude orders that were never paid for
+            }
+        },
         include: {user:true, address:true, orderItems: {include:{product:true}}},
         orderBy: {createdAt: 'desc'}
     })
