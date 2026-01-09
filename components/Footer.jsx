@@ -38,9 +38,9 @@ const Footer = () => {
     ];
 
     const socialIcons = [
-        { icon: FacebookIcon, link: "https://www.facebook.com" },
-        { icon: InstagramIcon, link: "https://www.instagram.com" },
-        { icon: TwitterIcon, link: "https://twitter.com" },
+        //{ icon: FacebookIcon, link: "https://www.facebook.com" },
+        { icon: InstagramIcon, link: "https://www.instagram.com/bopstore_by_gambino/" },
+        //{ icon: TwitterIcon, link: "https://twitter.com" },
     ]
 
     return (
@@ -77,7 +77,7 @@ const Footer = () => {
                     </div>
                 </div>
                 <p className="py-4 text-sm text-slate-500">
-                    Copyright 2025 © Bopstore All Right Reserved.
+                    Copyright 2026 © Bopstore All Right Reserved.
                 </p>
             </div>
         </footer>
