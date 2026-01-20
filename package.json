@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "prisma generate && next build",
+    "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "PRISMA_DISABLE_DOTENV=1 prisma generate"
