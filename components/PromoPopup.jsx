@@ -13,7 +13,7 @@ const PromoPopup = () => {
 
     // --- CONFIGURATION ---
     // Easily change the promo message and the sessionStorage key here.
-    const PROMO_MESSAGE = "Enjoy 10% OFF your purchase simply by using WELCOME at checkout";
+    const PROMO_MESSAGE = "Love is in the air — enjoy up to 60% OFF this Valentine’s Day";
     const SESSION_STORAGE_KEY = 'promoPopupClosed_v1'; // Change this key to force the popup to show again for all users.
 
     useEffect(() => {
