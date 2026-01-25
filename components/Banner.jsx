@@ -9,7 +9,7 @@ export default function Banner() {
     const handleClaim = () => {
         setIsOpen(false);
         toast.success('Coupon copied to clipboard!');
-        navigator.clipboard.writeText('MERRY10');
+        navigator.clipboard.writeText('WELCOME');
     };
 
     return isOpen && (
