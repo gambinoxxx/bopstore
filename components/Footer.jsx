@@ -49,7 +49,7 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-slate-500/30 text-slate-500">
                     <div>
                         <Link href="/" className="text-4xl font-semibold text-slate-700">
-                            <span className="text-green-600">BOP</span>STORE<span className="text-green-600 text-5xl leading-0">.</span>
+                            <span className="text-red-600">BOP</span>STORE<span className="text-red-600 text-5xl leading-0">.</span>
                         </Link>
                         <p className="max-w-[410px] mt-6 text-sm">Welcome to Bopstore, where innovation meets inspiration for every part of your life. From the latest smartphones and cutting-edge gadgets to the freshest apparel, footwear, and essential accessories, we curate the smartest and most stylish products, all in one ultimate destination.</p>
                         <div className="flex items-center gap-3 mt-5">
