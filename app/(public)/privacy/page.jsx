@@ -130,7 +130,7 @@ const PrivacyPage = () => {
   return (
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-r from-green-900 to-green-700 text-white">
+      <section className="py-16 bg-gradient-to-r from-red-900 to-red-700 text-white">
         <Container className="max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
