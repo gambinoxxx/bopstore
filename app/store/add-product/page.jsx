@@ -15,8 +15,10 @@ export default function StoreAddProduct() {
         'Cameras',
         'Large Appliances',
         'Small Appliances',
+        'Small Appliances',
+        'Small Appliances',
         "Men's Fashion",
-        "shirts",
+        "shirt",
         "Women's Fashion",
         "Kid's Fashion",
         'Shoes & Footwear',
@@ -41,6 +43,8 @@ export default function StoreAddProduct() {
         'Health & Wellness',
         'Bodybuilding Supplements',
         'Other',
+        'Bags',
+        'Jersey',
         
     ]
 
