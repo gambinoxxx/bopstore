@@ -1,49 +1,63 @@
 //update seller order status 
 import prisma from "@/lib/prisma";
 import authSeller from "@/middlewares/authSeller";
+import { OrderStatus } from "@prisma/client";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
-try {
-    const {userId} = getAuth(request)
-    const StoreId = await authSeller(userId)
+    try {
+        const { userId } = getAuth(request);
+        const StoreId = await authSeller(userId);
 
+        if (!StoreId) {
+            return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
+        }
 
-    if (!StoreId) {
-        return NextResponse.json({error: 'not authorized'}, {status: 401})
+        const { orderId, status } = await request.json();
+
+        // Validate the incoming status against the OrderStatus enum
+        if (!orderId || !status || !Object.values(OrderStatus).includes(status)) {
+            return NextResponse.json({ error: 'Invalid input. Provide a valid orderId and status.' }, { status: 400 });
+        }
+
+        await prisma.order.update({
+            where: { id: orderId, storeId: StoreId },
+            data: { status }
+        });
+
+        return NextResponse.json({ message: 'Order status updated successfully' });
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        // Handle case where the order is not found
+        if (error.code === 'P2025') {
+            return NextResponse.json({ error: 'Order not found or you do not have permission to update it.' }, { status: 404 });
+        }
+        return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });
     }
-   const{orderId, status} = await request.json()
-
-   await prisma.order.update({
-    where: {id: orderId, storeId: StoreId},
-    data: {status}
-   })
-
-   return NextResponse.json({message: 'Order status updated successfully'})
-} catch (error) {
-       return NextResponse.json({error: error.code || error.message}, {status: 400})
-
-}
 }
 export async function GET(request) {
     try {
-    const {userId} = getAuth(request)
-    const StoreId = await authSeller(userId)
+        const { userId } = getAuth(request);
+        const StoreId = await authSeller(userId);
 
-
-    if (!StoreId) {
-        return NextResponse.json({error: 'not authorized'}, {status: 401})
-    }
-    const orders =  await prisma.order.findMany({
-        where: {storeId: StoreId},
-        include: {user:true, address:true, orderItems: {include:{product:true}}},
-        orderBy: {createdAt: 'desc'}
-    })
-       return NextResponse.json({orders})
-
+        if (!StoreId) {
+            return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
+        }
+        const orders = await prisma.order.findMany({
+            where: {
+                storeId: StoreId,
+                NOT: {
+                    status: 'PENDING_PAYMENT' // Exclude orders that were never paid for
+                }
+            }
+        ,
+            include: { user: true, address: true, orderItems: { include: { product: true } } },
+            orderBy: { createdAt: 'desc' }
+        });
+        return NextResponse.json({ orders });
     } catch (error) {
         console.error(error);
-         return NextResponse.json({error: error.code || error.message}, {status: 400})
-;    }
+        return NextResponse.json({ error: 'An internal server error occurred' }, { status: 500 });
+    }
 }

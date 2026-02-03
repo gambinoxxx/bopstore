@@ -24,14 +24,25 @@ export default function Product() {
             // If not found in Redux, fetch from the API as a fallback
             if (!foundProduct && productId) {
                 try {
-                    const { data } = await axios.get(`/api/product/${productId}`);
-                    foundProduct = data.product;
+                    const { data } = await axios.get(`/api/products/${productId}`);
+                    // If the product exists but is archived or its store is inactive, treat it as not found.
+                    if (data.product && (data.product.isArchived || !data.product.store.isActive)) {
+                        foundProduct = null; // Explicitly set to null so the "Not Found" message shows.
+                    } else {
+                        foundProduct = data.product;
+                    }
                 } catch (error) {
-                    toast.error("Could not fetch product details.");
-                    console.error("Failed to fetch product:", error);
+                    // If the API returns a 404, it means the product doesn't exist.
+                    // We can log this without showing an error toast to the user.
+                    if (error.response && error.response.status === 404) {
+                        console.log("Product not found via API.");
+                    } else {
+                        toast.error("Something went wrong. Please try again.");
+                        console.error("Failed to fetch product:", error);
+                    }
                 }
             }
-            setProduct(foundProduct);
+            setProduct(foundProduct || null); // Ensure we set state to null if product is not found
             setLoading(false);
             scrollTo(0, 0);
         };

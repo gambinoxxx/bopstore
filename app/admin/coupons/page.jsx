@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import toast from "react-hot-toast"
-import { DeleteIcon } from "lucide-react"
+import { DeleteIcon, Flame, Trophy } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
 import axios from "axios" // 👈 ADDED: axios import
+
 
 export default function AdminCoupons() {
     const { getToken } = useAuth()
@@ -20,6 +21,20 @@ export default function AdminCoupons() {
         isPublic: false,
         expiresAt: format(new Date(), 'yyyy-MM-dd') 
     })
+
+    // State for Hot Deal
+    const [deal, setDeal] = useState({ title: "", description: "", endDate: "" });
+    const [dealLoading, setDealLoading] = useState(true);
+
+    // State for Vendor of the Week
+    const [vendors, setVendors] = useState([
+        { rank: 1, name: '', deals: 0 },
+        { rank: 2, name: '', deals: 0 },
+        { rank: 3, name: '', deals: 0 },
+    ]);
+    const [stores, setStores] = useState([]);
+
+    // --- Coupon Functions ---
 
     const fetchCoupons = async () => {
         try {
@@ -82,6 +97,102 @@ export default function AdminCoupons() {
         setNewCoupon({ ...newCoupon, [e.target.name]: value })
     }
 
+    // --- Hot Deal Functions ---
+
+    const fetchCurrentDeal = async () => {
+      try {
+        const token = await getToken();
+        const { data } = await axios.get("/api/admin/coupon?action=hotdeal", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (data.endDate) {
+          const date = new Date(data.endDate);
+          const formattedDate = date.toISOString().slice(0, 16);
+          setDeal({ ...data, endDate: formattedDate });
+        } else {
+          setDeal(data);
+        }
+      } catch (error) {
+        toast.error("Failed to fetch current deal settings.");
+      } finally {
+        setDealLoading(false);
+      }
+    };
+
+    const handleDealInputChange = (e) => {
+        const { name, value } = e.target;
+        setDeal((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleDealSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const token = await getToken();
+            const payload = {
+                ...deal,
+                endDate: new Date(deal.endDate).toISOString(),
+            };
+            const { data } = await axios.post("/api/admin/coupon?action=hotdeal", payload, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error?.response?.data?.error || "Failed to update deal.");
+        }
+    };
+
+    // --- Vendor Functions ---
+
+    const handleVendorChange = (index, field, value) => {
+        const newVendors = [...vendors];
+        newVendors[index][field] = value;
+        setVendors(newVendors);
+    };
+
+    const handleSaveVendors = async () => {
+        try {
+            const token = await getToken();
+            const { data } = await axios.post('/api/vendor-ranking', { vendors }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(data.message);
+        } catch (error) {
+            toast.error(error?.response?.data?.error || "Failed to save rankings");
+        }
+    };
+
+    const fetchStores = async () => {
+        try {
+            const token = await getToken();
+            const { data } = await axios.get('/api/store/name', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setStores(data.stores || []);
+        } catch (error) {
+            console.error("Failed to fetch stores", error);
+        }
+    };
+
+    const fetchVendorRankings = async () => {
+        try {
+            const token = await getToken();
+            const { data } = await axios.get('/api/vendor-ranking', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (data.rankings && data.rankings.length > 0) {
+                const mergedVendors = [1, 2, 3].map(rank => {
+                    const existing = data.rankings.find(r => r.rank === rank);
+                    return existing ? { rank, name: existing.name, deals: existing.deals } : { rank, name: '', deals: 0 };
+                });
+                setVendors(mergedVendors);
+            }
+        } catch (error) {
+            console.error("Failed to fetch vendor rankings", error);
+        }
+    };
+
+    // --- Main useEffect ---
+
     // ✅ IMPLEMENTED FUNCTION
     const deleteCoupon = async (code) => {
         try {
@@ -103,12 +214,97 @@ export default function AdminCoupons() {
 
     // The rest of your component remains the same for the return statement...
     useEffect(() => {
-        fetchCoupons();
+        fetchCoupons()
+        fetchCurrentDeal()
+        fetchStores()
+        fetchVendorRankings()
     }, [])
 
     return (
-        <div className="text-slate-500 mb-40">
-            {/* Add Coupon */}
+        <div className="text-slate-500 mb-40 space-y-16">
+            {/* Manage Hot Deal Section */}
+            <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                    <Flame className="text-orange-500" size={28} />
+                    <h1 className="text-2xl font-bold text-slate-800">Manage Hot Deal</h1>
+                </div>
+                {dealLoading ? <p>Loading deal settings...</p> : (
+                    <form onSubmit={e => toast.promise(handleDealSubmit(e), { loading: "Saving Deal..." })} className="space-y-6 text-slate-600">
+                        <div>
+                            <label htmlFor="title" className="block text-sm font-medium">Deal Title</label>
+                            <input id="title" name="title" value={deal.title} onChange={handleDealInputChange} placeholder="e.g., Summer Mega Sale" className="mt-1 p-2 px-4 outline-none border border-slate-300 rounded w-full" required />
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-medium">Description</label>
+                            <textarea id="description" name="description" value={deal.description} onChange={handleDealInputChange} placeholder="A short, catchy description for the deal." rows={3} className="mt-1 p-2 px-4 outline-none border border-slate-300 rounded w-full resize-none" required />
+                        </div>
+                        <div>
+                            <label htmlFor="endDate" className="block text-sm font-medium">End Date & Time</label>
+                            <input id="endDate" name="endDate" type="datetime-local" value={deal.endDate} onChange={handleDealInputChange} className="mt-1 p-2 px-4 outline-none border border-slate-300 rounded w-full" required />
+                        </div>
+                        <button type="submit" className="w-full bg-slate-800 text-white font-medium py-3 rounded-md hover:bg-slate-900 active:scale-95 transition-all">
+                            Save Deal Settings
+                        </button>
+                    </form>
+                )}
+            </div>
+
+            {/* Divider */}
+            <hr className="border-slate-200" />
+
+            {/* Vendor of the Week Section */}
+            <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                    <Trophy className="text-yellow-500" size={28} />
+                    <h1 className="text-2xl font-bold text-slate-800">Vendor of the Week</h1>
+                </div>
+                <p className="text-slate-500 mb-8">Manually select the top 3 vendors and input their closed deals count.</p>
+                
+                <div className="space-y-6">
+                    {vendors.map((vendor, index) => (
+                        <div key={index} className="flex flex-col sm:flex-row gap-4 items-start sm:items-end border-b border-slate-100 pb-6 last:border-0">
+                            <div className="w-12 font-bold text-3xl text-slate-300">#{vendor.rank}</div>
+                            <div className="flex-1 w-full">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Vendor Name</label>
+                                <select
+                                    value={vendor.name}
+                                    onChange={(e) => handleVendorChange(index, 'name', e.target.value)}
+                                    className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
+                                >
+                                    <option value="" disabled>Select Vendor</option>
+                                    {stores.map((store) => (
+                                        <option key={store.id} value={store.name}>{store.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="w-full sm:w-40">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Deals Closed</label>
+                                <input 
+                                    type="number" 
+                                    value={vendor.deals}
+                                    onChange={(e) => handleVendorChange(index, 'deals', e.target.value)}
+                                    className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                    placeholder="0"
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <button 
+                    onClick={handleSaveVendors}
+                    className="mt-8 bg-slate-800 text-white font-medium py-3 px-8 rounded-md hover:bg-slate-900 active:scale-95 transition-all"
+                >
+                    Save Vendor Rankings
+                </button>
+            </div>
+
+            {/* Divider */}
+            <hr className="border-slate-200" />
+
+            {/* Manage Coupons Section */}
+            <div>
+                <h1 className="text-2xl font-bold text-slate-800 mb-6">Manage Coupons</h1>
+                {/* Add Coupon Form */}
             <form onSubmit={(e) => toast.promise(handleAddCoupon(e), { loading: "Adding coupon..." })} className="max-w-sm text-sm">
                 <h2 className="text-2xl">Add <span className="text-slate-800 font-medium">Coupons</span></h2>
                 <div className="flex gap-2 max-sm:flex-col mt-2">
@@ -158,7 +354,7 @@ export default function AdminCoupons() {
                 <button className="mt-4 p-2 px-10 rounded bg-slate-700 text-white active:scale-95 transition">Add Coupon</button>
             </form>
 
-            {/* List Coupons */}
+            {/* List Coupons Table */}
             <div className="mt-14">
                 <h2 className="text-2xl">List <span className="text-slate-800 font-medium">Coupons</span></h2>
                 <div className="overflow-x-auto mt-4 rounded-lg border border-slate-200 max-w-4xl">
@@ -192,6 +388,7 @@ export default function AdminCoupons() {
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
         </div>
     )

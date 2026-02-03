@@ -7,23 +7,32 @@ import { ClerkProvider}  from "@clerk/nextjs";
 export const dynamic = "force-dynamic";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"] });
-
+ 
 export const metadata = {
     title: "BOPSTORE. - shop all you want",
     description: "BOPSTORE. - shop all you want",
+    verification: {
+        google: "iUfonbDoBJhMgB1vIhdxu1Ag4WosaHusvJO5eLZizsY",
+    },
 };
 
 export default function RootLayout({ children }) {
     return (
-        <ClerkProvider>
         <html lang="en">
             <body className={`${outfit.className} antialiased`}>
-                <StoreProvider>
-                    <Toaster />
-                    {children}
-                </StoreProvider>
+                <ClerkProvider
+                    appearance={{
+                        elements: {
+                            modalBackdrop: "bg-black/50",
+                        },
+                    }}
+                >
+                    <StoreProvider>
+                        <Toaster />
+                        {children}
+                    </StoreProvider>
+                </ClerkProvider>
             </body>
         </html>
-        </ClerkProvider>
     );
 }

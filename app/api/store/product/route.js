@@ -22,6 +22,7 @@ export async function POST(request) {
         const price = Number(formData.get("price"))
         const category = formData.get("category")
         const images = formData.getAll("images")
+        const specificationsString = formData.get("specifications");
 
         if (!name || !description || !mrp || !price || !category || !images){
             return NextResponse.json({error: "missing product details"}, {status: 400})
@@ -44,6 +45,10 @@ export async function POST(request) {
             })
             return url
         }))
+
+        // Parse the specifications string back into a JSON object
+        const specifications = specificationsString ? JSON.parse(specificationsString) : {};
+
         await prisma.product.create({
             data:{
                 name,
@@ -52,7 +57,8 @@ export async function POST(request) {
                 price,
                 category,
                 images: imagesUrl,
-                storeId
+                storeId,
+                specifications, // Add the parsed object here
             }
         })
         return NextResponse.json({message: "product added successfully"})   
@@ -76,7 +82,8 @@ export async function GET(request){
         }
         const products = await prisma.product.findMany({
             where: {
-                storeId
+                storeId,
+                isArchived: false // Only show non-archived products to the seller
             }
         })
         return NextResponse.json({products})
@@ -98,13 +105,9 @@ export async function PUT(request) {
             return NextResponse.json({ error: "Not authorized" }, { status: 401 });
         }
 
-        const { productId, stock } = await request.json();
+        const body = await request.json();
+        const { productId, stock, isHotDeal } = body;
 
-        if (!productId || stock === undefined || stock === null || isNaN(stock)) {
-            return NextResponse.json({ error: "Missing or invalid product details" }, { status: 400 });
-        }
-
-        // Ensure the product belongs to the seller's store before updating
         const product = await prisma.product.findFirst({
             where: {
                 id: productId,
@@ -116,15 +119,60 @@ export async function PUT(request) {
             return NextResponse.json({ error: "Product not found or you don't have permission to edit it." }, { status: 404 });
         }
 
-        // Update the stock
-        await prisma.product.update({
-            where: { id: productId },
-            data: { stock: stock },
-        });
+        // Scenario 1: Update stock
+        if (stock !== undefined) {
+            if (isNaN(stock)) {
+                return NextResponse.json({ error: "Invalid stock value" }, { status: 400 });
+            }
+            await prisma.product.update({
+                where: { id: productId },
+                data: { stock: Number(stock) },
+            });
+            return NextResponse.json({ message: "Stock updated successfully" });
+        }
 
-        return NextResponse.json({ message: "Stock updated successfully" });
+        // Scenario 2: Update Hot Deal status
+        if (typeof isHotDeal === 'boolean') {
+            await prisma.product.update({
+                where: { id: productId },
+                data: { isHotDeal },
+            });
+            return NextResponse.json({ message: "Hot Deal status updated" });
+        }
+
+        return NextResponse.json({ error: "Missing or invalid update details" }, { status: 400 });
     } catch (error) {
         console.error("Error updating stock:", error);
         return NextResponse.json({ error: error.message || "Failed to update stock" }, { status: 500 });
+    }
+}
+
+// soft delete a product (archive)
+export async function DELETE(request) {
+    try {
+        const { userId } = getAuth(request);
+        const storeId = await authSeller(userId);
+
+        if (!storeId) {
+            return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const productId = searchParams.get('productId');
+
+        if (!productId) {
+            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        }
+
+        // Perform a "soft delete" by archiving the product
+        await prisma.product.update({
+            where: { id: productId, storeId: storeId }, // Ensure seller can only archive their own product
+            data: { isArchived: true },
+        });
+
+        return NextResponse.json({ message: 'Product archived successfully' });
+    } catch (error) {
+        console.error("Error archiving product:", error);
+        return NextResponse.json({ error: "Failed to archive product" }, { status: 500 });
     }
 }

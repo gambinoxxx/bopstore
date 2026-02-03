@@ -4,11 +4,49 @@ import { useAuth } from "@clerk/nextjs"
 import Image from "next/image"
 import axios from "axios"
 import { useState } from "react"
-import { toast } from "react-hot-toast"
+import toast from "react-hot-toast"
 
 export default function StoreAddProduct() {
 
-    const categories = ['Electronics', 'Clothing', 'Home & Kitchen', 'Beauty & Health', 'Toys & Games', 'Sports & Outdoors', 'Books & Media', 'Food & Drink', 'Hobbies & Crafts', 'Others']
+    const categories = [
+        'Phones & Tablets',
+        'Laptops & Desktops',
+        'Televisions & Audio',
+        'Cameras',
+        'Large Appliances',
+        'Small Appliances',
+        'Small Appliances',
+        'Small Appliances',
+        "Men's Fashion",
+        "shirt",
+        "shirts",
+        "Women's Fashion",
+        "Kid's Fashion",
+        'Shoes & Footwear',
+        'Watches',
+        'Beauty',
+        'Makeup',
+        'Groceries & Food',
+        'Home & Office Furniture',
+        'Kitchen & Dining',
+        'Baby Products',
+        'Gaming & Consoles',
+        'Sporting Goods',
+        'Automobile Parts & Accessories',
+        'Books & Media',
+        'unisex shoe',
+        'Jewelry',
+        'Drones',
+        'Hair Clippers & Accessories',
+        'Female shoes',
+        'Female Watches',
+        'Fragrances',
+        'Health & Wellness',
+        'Bodybuilding Supplements',
+        'Other',
+        'Bags',
+        'Jersey',
+    ]
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
     const [productInfo, setProductInfo] = useState({
@@ -18,12 +56,34 @@ export default function StoreAddProduct() {
         price: 0,
         category: "",
     })
+    const [specifications, setSpecifications] = useState([{ key: '', value: '' }]);
     const [loading, setLoading] = useState(false)
 
     const { getToken } = useAuth()
 
     const onChangeHandler = (e) => {
         setProductInfo({ ...productInfo, [e.target.name]: e.target.value })
+    }
+
+    // --- Specification Handlers ---
+    const handleSpecChange = (index, event) => {
+        const values = [...specifications];
+        values[index][event.target.name] = event.target.value;
+        setSpecifications(values);
+    };
+
+    const addSpecField = () => {
+        // Prevent adding new fields if the last one is empty
+        if (specifications[specifications.length - 1]?.key === '' && specifications[specifications.length - 1]?.value === '') {
+            return toast.error("Please fill the current specification field first.");
+        }
+        setSpecifications([...specifications, { key: '', value: '' }]);
+    };
+
+    const removeSpecField = (index) => {
+        const values = [...specifications];
+        values.splice(index, 1);
+        setSpecifications(values);
     }
 
     const onSubmitHandler = async (e) => {
@@ -41,6 +101,15 @@ export default function StoreAddProduct() {
             formData.append('mrp', productInfo.mrp)
             formData.append('price', productInfo.price)
             formData.append('category', productInfo.category)
+
+            // Convert specifications array to a JSON object and stringify it
+            const specsObject = specifications.reduce((obj, item) => {
+                if (item.key.trim() && item.value.trim()) { // Only add if key and value are not empty
+                    obj[item.key.trim()] = item.value.trim();
+                }
+                return obj;
+            }, {});
+            formData.append('specifications', JSON.stringify(specsObject));
 
             // append images to formData
             Object.keys(images).forEach((key) => {
@@ -63,6 +132,7 @@ export default function StoreAddProduct() {
                 category: "",
             })
             setImages({ 1: null, 2: null, 3: null, 4: null })
+            setSpecifications([{ key: '', value: '' }])
             } catch (error) {
                 toast.error(error?.response?.data?.error || error.message)
             } finally {
@@ -111,6 +181,35 @@ export default function StoreAddProduct() {
                     <option key={category} value={category}>{category}</option>
                 ))}
             </select>
+
+            {/* --- Specifications Section --- */}
+            <div className="my-8">
+                <h3 className="text-lg mb-4">Product Specifications</h3>
+                <div className="flex flex-col gap-3 max-w-xl">
+                    {specifications.map((spec, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                name="key"
+                                placeholder="e.g., Brand"
+                                value={spec.key}
+                                onChange={event => handleSpecChange(index, event)}
+                                className="border p-2 px-4 rounded w-1/3 outline-none focus:border-slate-400"
+                            />
+                            <input
+                                type="text"
+                                name="value"
+                                placeholder="e.g., Apple"
+                                value={spec.value}
+                                onChange={event => handleSpecChange(index, event)}
+                                className="border p-2 px-4 rounded flex-1 outline-none focus:border-slate-400"
+                            />
+                            <button type="button" onClick={() => removeSpecField(index)} className="text-red-500 hover:text-red-700 font-medium text-xs">REMOVE</button>
+                        </div>
+                    ))}
+                </div>
+                <button type="button" onClick={addSpecField} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add Specification</button>
+            </div>
 
             <br />
 

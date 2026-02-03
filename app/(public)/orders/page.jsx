@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Loading from "@/components/Loading";
 import { useRouter } from "next/navigation";
 
+
 export default function Orders() {
     const { getToken } = useAuth();
     const {user ,isLoaded} =useUser();
@@ -62,7 +63,7 @@ export default function Orders() {
                         </thead>
                         <tbody>
                             {orders.map((order) => (
-                                <OrderItem order={order} key={order.id} />
+                                <OrderItem order={order} key={order.id} isClickable={false} />
                             ))}
                         </tbody>
                     </table>

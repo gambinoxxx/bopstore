@@ -3,23 +3,27 @@ import { NextResponse } from "next/server";
 
 export async function GET(request) {
     try {
-        let products = await prisma.product.findMany({
-            // We fetch all products and let the frontend handle stock display
-             include: {
+        const products = await prisma.product.findMany({
+            where: {
+                // Let the database do the filtering for better performance
+                isArchived: false,
+                store: {
+                    isActive: true,
+                },
+            },
+            include: {
                 rating:{
-                select: {
-                    createdAt: true, rating: true, review: true, 
-                    user: {select: {name: true, image: true}}
-                }
-             },
-             store: true,
-             },
-             orderBy: {createdAt: 'desc'}     
-        })
-        //remove products with store isActive false
-        products = products.filter(product => product.store.isActive)
+                    select: {
+                        createdAt: true, rating: true, review: true, 
+                        user: {select: {name: true, image: true}}
+                    }
+                },
+                store: true, // Still include store details in the response
+            },
+            orderBy: { createdAt: 'desc' }     
+        });
 
-        return NextResponse.json({products})
+        return NextResponse.json({ products });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "An internal server error occurred"}, {status: 500 })

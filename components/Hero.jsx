@@ -1,10 +1,11 @@
 'use client'
 import { assets } from '@/assets/assets'
-import { ArrowRightIcon, ChevronRightIcon } from 'lucide-react'
+import { ArrowRightIcon, ChevronRightIcon, Trophy } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState, useEffect } from 'react'
 import CategoriesMarquee from './CategoriesMarquee'
+import axios from 'axios'
 
 const Hero = () => {
 
@@ -27,16 +28,53 @@ const Hero = () => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₦'
 
+    const [topVendors, setTopVendors] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchVendorRankings = async () => {
+            try {
+                const { data } = await axios.get('/api/vendor-ranking');
+                if (data.rankings && data.rankings.length > 0) {
+                    const styles = [
+                        { medal: '🥇', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' },
+                        { medal: '🥈', color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
+                        { medal: '🥉', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
+                    ];
+
+                    const mappedVendors = data.rankings
+                        .sort((a, b) => a.rank - b.rank)
+                        .slice(0, 3)
+                        .map((vendor, index) => ({
+                            name: vendor.name,
+                            deals: vendor.deals,
+                            username: vendor.username,
+                            ...styles[index]
+                        }));
+                    
+                    if (mappedVendors.length > 0) {
+                        setTopVendors(mappedVendors);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch vendor rankings", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchVendorRankings();
+    }, []);
+
     return (
         <div className='mx-6'>
             <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10'>
-                <div className='relative flex-1 flex flex-col bg-green-200 rounded-3xl xl:min-h-100 group'>
+                <div className='relative flex-1 flex flex-col bg-red-200 rounded-3xl xl:min-h-100 group'>
                     <div className='p-5 sm:p-16'>
-                        <div className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm'>
-                            <span className='bg-green-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs'>NEWS</span> Free Shipping on Orders Above N20,000! <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
+                        <div className='inline-flex items-center gap-3 bg-red-300 text-red-600 pr-4 p-1 rounded-full text-xs sm:text-sm'>
+                            <span className='bg-red-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs'>NEWS</span> Free Shipping on Orders Above N200,000! <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
                         </div>
-                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs  sm:max-w-md'>
-                            {/* Gadgets you'll love. Prices you'll trust. */}
+                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium bg-gradient-to-r from-slate-600 to-[#bf0603] bg-clip-text text-transparent max-w-xs  sm:max-w-md'>
+                            {/* Gadgets you'll love. Prices you'll trust. A0FF74*/}
                             Everything You Need. Value You Deserve.
                         </h2>
                         <div className='text-slate-800 text-sm font-medium mt-4 sm:mt-8'>
@@ -50,20 +88,46 @@ const Hero = () => {
                     <Image className='sm:absolute bottom-0 right-0 md:right-10 w-4/5 mx-auto h-48 object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem]' src={rotatingImages[currentImageIndex]} alt="Hero Image" />
                 </div>
                 <div className='flex flex-col md:flex-row xl:flex-col gap-5 w-full xl:max-w-sm text-sm text-slate-600'>
-                    <div className='flex-1 flex items-center justify-between w-full bg-orange-200 rounded-3xl p-6 px-8 group'>
-                        <div>
-                            <p className='text-3xl font-medium bg-gradient-to-r from-slate-800 to-[#FFAD51] bg-clip-text text-transparent max-w-40'>Best products</p>
-                            <p className='flex items-center gap-1 mt-4'>View more <ArrowRightIcon className='group-hover:ml-2 transition-all' size={18} /> </p>
+                    <div className='flex-1 flex flex-col justify-center w-full bg-white border border-slate-200 rounded-3xl p-6 px-8 shadow-sm group'>
+                        <div className='flex items-center gap-2 mb-4'>
+                            <h3 className='text-xl font-semibold text-slate-800'>Vendor of the Week</h3>
+                            <Trophy className="text-yellow-500" size={24} />
                         </div>
-                        <Image className='w-35' src={assets.img1} alt="" />
+                        <div className='space-y-3 w-full'>
+                            {loading ? (
+                                Array(3).fill(0).map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 animate-pulse">
+                                        <div className="flex items-center gap-3 w-full">
+                                            <div className="h-8 w-8 bg-slate-200 rounded-full shrink-0"></div>
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                                                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                topVendors.map((vendor, index) => (
+                                <Link href={vendor.username ? `/shop/${vendor.username}` : '#'} key={index} className={`flex items-center justify-between p-3 rounded-xl border ${vendor.bg} ${vendor.border} hover:shadow-md transition-all`}>
+                                    <div className='flex items-center gap-3'>
+                                        <span className='text-2xl'>{vendor.medal}</span>
+                                        <div>
+                                            <p className='font-medium text-slate-800 text-base'>{vendor.name}</p>
+                                            <p className='text-xs text-slate-500'>{vendor.deals} Deals Closed</p>
+                                        </div>
+                                    </div>
+                                    <div className={`font-bold text-lg ${vendor.color}`}>#{index + 1}</div>
+                                </Link>
+                            )))}
+                        </div>
                     </div>
-                    <div className='flex-1 flex items-center justify-between w-full bg-blue-200 rounded-3xl p-6 px-8 group'>
+                    <Link href='/shop' className='flex-1 flex items-center justify-between w-full bg-blue-200 rounded-3xl p-6 px-8 group'>
                         <div>
                             <p className='text-3xl font-medium bg-gradient-to-r from-slate-800 to-[#78B2FF] bg-clip-text text-transparent max-w-40'>20% discounts</p>
                             <p className='flex items-center gap-1 mt-4'>View more <ArrowRightIcon className='group-hover:ml-2 transition-all' size={18} /> </p>
                         </div>
                         <Image className='w-35' src={assets.img10} alt="" />
-                    </div>
+                    </Link>
                 </div>
             </div>
             <CategoriesMarquee />

@@ -79,8 +79,8 @@ export default function Cart() {
                                             </div>
                                         </td>
                                         <td className="text-center">
-                                            <Counter productId={item.id} />
-                                        </td>
+                                            <Counter productId={item.id} stock={item.stock} />
+ </td>
                                         <td className="text-center">{currency}{(item.price * item.quantity).toLocaleString()}</td>
                                         <td className="text-center max-md:hidden">
                                             <button onClick={() => handleDeleteItemFromCart(item.id)} className=" text-red-500 hover:bg-red-50 p-2.5 rounded-full active:scale-95 transition-all">
