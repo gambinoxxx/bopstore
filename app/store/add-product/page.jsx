@@ -18,7 +18,11 @@ export default function StoreAddProduct() {
         'Small Appliances',
         'Small Appliances',
         "Men's Fashion",
+<<<<<<< HEAD
         "shirt",
+=======
+        "shirts",
+>>>>>>> 5cfface (Implement Valentine's Collection page with product filtering and package selection)
         "Women's Fashion",
         "Kid's Fashion",
         'Shoes & Footwear',
@@ -44,8 +48,11 @@ export default function StoreAddProduct() {
         'Bodybuilding Supplements',
         'Other',
         'Bags',
+<<<<<<< HEAD
         'Jersey',
         
+=======
+>>>>>>> 5cfface (Implement Valentine's Collection page with product filtering and package selection)
     ]
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
