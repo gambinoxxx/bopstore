@@ -172,12 +172,17 @@ model Store {
     email       String
     contact     String
     whatsappNumber String?
+    images      String[] @default([])
+    type        String   @default("store") // "store" or "service"
+    category    String?  // e.g. "tailor", "mechanic"
+    rating      Float    @default(0)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
     Product Product[]
     Order   Order[]
     user    User      @relation(fields: [userId], references: [id])
+    reviews Review[]
 }
 model VendorRanking {
   id        String   @id @default(cuid())
@@ -210,4 +215,14 @@ model Transaction {
     updatedAt   DateTime @updatedAt
 
     wallet Wallet @relation(fields: [walletId], references: [id])
+}
+
+model Review {
+  id                String          @id @default(cuid())
+  storeId           String
+  store             Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user              String          // Name of the reviewer
+  comment           String
+  rating            Int
+  createdAt         DateTime        @default(now())
 }

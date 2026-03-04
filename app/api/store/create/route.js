@@ -117,7 +117,7 @@ export async function GET(request){
         })
         //if store is already registered then send status of store
         if(store){
-            return NextResponse.json({status: store.status})
+            return NextResponse.json({status: store.status, type: store.type})
         }
         return NextResponse.json({status: "not registered"})
 

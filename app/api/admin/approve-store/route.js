@@ -41,8 +41,15 @@ export async function GET(request) {
         if (!isAdmin) {
             return NextResponse.json({error: "not authorized"}, {status: 401});
         }
+
+        const { searchParams } = new URL(request.url);
+        const type = searchParams.get('type');
+        
+        const where = {status: {in: ['pending', 'rejected']}};
+        if (type) where.type = type;
+
         const stores = await prisma.store.findMany({
-            where: {status: {in: ['pending', 'rejected']}},
+            where,
             include: {user: true}
         })
         return NextResponse.json({stores})

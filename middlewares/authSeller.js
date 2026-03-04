@@ -6,7 +6,7 @@ const authSeller = async (userId) => {
             where: {id: userId},
             include: {store: true},
         })
-        if (user.store){
+        if (user && user.store){
             if (user.store.status === 'approved'){
                 return user.store.id
             }else{

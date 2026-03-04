@@ -1,28 +1,36 @@
 'use client'
-import Title from './Title'
-import Link from 'next/link'
+import React from 'react'
 import Image from 'next/image'
 import { assets } from '@/assets/assets'
+import Link from 'next/link'
 
 const BestSelling = () => {
-
     return (
-        <div className='bg-red-50 py-20 my-20'>
-            <div className='px-6 max-w-6xl mx-auto'>
-                <Title title='Valentine Special' description='Find the perfect gift for your loved ones.' href='/shop' />
-                <div className='mt-12 grid grid-cols-1 md:grid-cols-2 gap-6'>
-                    <Link href='/valentine/women' className='relative h-[400px] rounded-xl overflow-hidden group cursor-pointer'>
-                        <Image src={assets.img1} alt="For Her" fill className='object-cover group-hover:scale-105 transition-transform duration-500' />
-                        <div className='absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center'>
-                            <h3 className='text-white text-4xl font-bold tracking-wider'>FOR HER</h3>
-                        </div>
+        <div className='my-20 px-4 sm:px-6 lg:px-8'>
+            <div className='max-w-7xl mx-auto rounded-3xl bg-[#B9F8CF] relative overflow-hidden flex flex-col-reverse md:flex-row items-center'>
+                {/* Text Content */}
+                <div className='p-8 sm:p-12 lg:p-16 space-y-6 text-center md:text-left w-full md:w-1/2'>
+                    <div>
+                        <h2 className='text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight'>Need a service provider?</h2>
+                        <p className='text-xl md:text-2xl text-slate-600 mt-2'>we’ve got you covered.</p>
+                    </div>
+                    <div className='pt-4'>
+                        <p className='text-base text-slate-600'>starts from</p>
+                        <p className='text-3xl lg:text-4xl font-bold text-slate-900'>₦4,000</p>
+                    </div>
+                    <Link href='/services' className='inline-block w-full sm:w-auto px-10 py-4 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors active:scale-95 text-center'>
+                        Connect Now
                     </Link>
-                    <Link href='/valentine/men' className='relative h-[400px] rounded-xl overflow-hidden group cursor-pointer'>
-                        <Image src={assets.img2} alt="For Him" fill className='object-cover group-hover:scale-105 transition-transform duration-500' />
-                        <div className='absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center'>
-                            <h3 className='text-white text-4xl font-bold tracking-wider'>FOR HIM</h3>
-                        </div>
-                    </Link>
+                </div>
+
+                {/* Image */}
+                <div className='relative w-full md:w-1/2 h-64 md:h-96 lg:h-[480px]'>
+                    <Image
+                        src={assets.img7} // Assuming this asset exists and is suitable
+                        alt="A person receiving a service"
+                        fill
+                        className='object-cover'
+                    />
                 </div>
             </div>
         </div>
