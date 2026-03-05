@@ -73,7 +73,7 @@ const Hero = () => {
                         <div className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm'>
                             <span className='bg-green-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs'>NEWS</span> Free Shipping on Orders Above N200,000! <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
                         </div>
-                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium bg-gradient-to-r from-slate-600 to-[#bf0603] bg-clip-text text-transparent max-w-xs  sm:max-w-md'>
+                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs  sm:max-w-md'>
                             {/* Gadgets you'll love. Prices you'll trust. A0FF74*/}
                             Everything You Need. Value You Deserve.
                         </h2>
