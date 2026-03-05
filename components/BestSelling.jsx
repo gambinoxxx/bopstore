@@ -16,7 +16,7 @@ const BestSelling = () => {
                     </div>
                     <div className='pt-4'>
                         <p className='text-base text-slate-600'>starts from</p>
-                        <p className='text-3xl lg:text-4xl font-bold text-slate-900'>₦4,000</p>
+                        <p className='text-3xl lg:text-4xl font-bold text-slate-900'>₦1,000</p>
                     </div>
                     <Link href='/services' className='inline-block w-full sm:w-auto px-10 py-4 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors active:scale-95 text-center'>
                         Connect Now
@@ -26,7 +26,7 @@ const BestSelling = () => {
                 {/* Image */}
                 <div className='relative w-full md:w-1/2 h-64 md:h-96 lg:h-[480px]'>
                     <Image
-                        src={assets.img7} // Assuming this asset exists and is suitable
+                        src={assets.service} // Assuming this asset exists and is suitable
                         alt="A person receiving a service"
                         fill
                         className='object-cover'
