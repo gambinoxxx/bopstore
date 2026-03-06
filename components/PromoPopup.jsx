@@ -13,7 +13,7 @@ const PromoPopup = () => {
 
     // --- CONFIGURATION ---
     // Easily change the promo message and the sessionStorage key here.
-    const PROMO_MESSAGE = "Love is in the air — enjoy up to 60% OFF this Valentine’s Day";
+    const PROMO_MESSAGE = "Coming Soon";
     const SESSION_STORAGE_KEY = 'promoPopupClosed_v1'; // Change this key to force the popup to show again for all users.
 
     useEffect(() => {
@@ -65,7 +65,7 @@ const PromoPopup = () => {
                         }}
                         className="bg-slate-800 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-700 transition-transform transform hover:scale-105"
                     >
-                        Sign Up & Claim
+                        Sign Up
                     </button>
                 </div>
             </div>
