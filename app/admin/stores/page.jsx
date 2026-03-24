@@ -18,7 +18,7 @@ export default function AdminStores() {
     const fetchStores = async () => {
     try{
         const token = await getToken()
-        const {data} = await axios.get('/api/admin/stores',{
+        const {data} = await axios.get('/api/admin/listings',{
             headers:{
                 Authorization: `Bearer ${token}`
             }
