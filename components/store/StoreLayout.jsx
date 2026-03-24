@@ -16,28 +16,10 @@ const StoreLayout = ({ children }) => {
     if (pathname?.includes('/create')) {
         return <div className="min-h-screen bg-slate-50">{children}</div>
     }
-
-    // Check if store exists, if not redirect to create
-    useEffect(() => {
-        const checkStore = async () => {
-            try {
-                const token = await getToken()
-                await axios.get('/api/store', {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
-            } catch (error) {
-                if (error.response?.status === 404) {
-                    router.push('/create-store')
-                }
-            }
-        }
-        checkStore()
-    }, [router, getToken])
-
     return (
         <DashboardLayout
-            apiEndpoint="/api/store"
-            roleKey="isStore"
+            apiEndpoint="/api/store/is-seller"
+            roleKey="isSeller"
             infoKey="store"
             Navbar={StoreNavbar}
             Sidebar={StoreSidebar}
