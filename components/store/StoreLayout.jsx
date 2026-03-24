@@ -17,15 +17,16 @@ const StoreLayout = ({ children }) => {
         return <div className="min-h-screen bg-slate-50">{children}</div>
     }
     return (
-        <DashboardLayout
-            apiEndpoint="/api/store/is-seller"
-            roleKey="isSeller"
-            infoKey="store"
-            Navbar={StoreNavbar}
-            Sidebar={StoreSidebar}
-        >
-            {children}
-        </DashboardLayout>
+       <DashboardLayout
+    apiEndpoint="/api/store/is-seller"
+    roleKey="isSeller"
+    infoKey="storeInfo"
+    Navbar={StoreNavbar}
+    Sidebar={StoreSidebar}
+    infoProp="storeInfo" // 👈 THIS FIXES YOUR UI
+>
+    {children}
+</DashboardLayout>
     )
 }
 
