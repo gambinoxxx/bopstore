@@ -9,19 +9,21 @@ export async function GET(request) {
             return NextResponse.json({ isProvider: false })
         }
 
-        const service = await prisma.store.findUnique({
-            where: { userId }
-        })
-
-        if (service) {
-            const isProvider = service.type === 'service' && service.status === 'approved'
-            return NextResponse.json({ 
-                isProvider, 
-                serviceInfo: service,
-                status: service.status,
-                type: service.type
-            })
-        }
+    const service = await prisma.store.findFirst({
+    where: {
+        userId,
+        type: 'service'
+    }
+})
+     if (service) {
+    const isProvider = service.status === 'approved'
+    return NextResponse.json({ 
+        isProvider,
+        serviceInfo: service,
+        status: service.status,
+        type: service.type
+    })
+}
 
         return NextResponse.json({ isProvider: false })
     } catch (error) {
