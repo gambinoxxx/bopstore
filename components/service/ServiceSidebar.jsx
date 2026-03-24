@@ -1,11 +1,18 @@
 'use client'
-import { usePathname } from "next/navigation"
-import { HomeIcon, LayoutListIcon, SquarePenIcon, SquarePlusIcon, SettingsIcon } from "lucide-react"
 
+import { usePathname } from "next/navigation"
+import {
+    HomeIcon,
+    LayoutListIcon,
+    SquarePenIcon,
+    SquarePlusIcon,
+    SettingsIcon
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import clsx from "clsx"
 
-const ServiceSidebar = ({info}) => {
+const ServiceSidebar = ({ info }) => {
 
     const pathname = usePathname()
 
@@ -18,27 +25,39 @@ const ServiceSidebar = ({info}) => {
     ]
 
     return (
-        <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-60">
-             <div className="flex flex-col gap-3 justify-center items-center pt-8 max-sm:hidden">
-                 {info?.logo ? (
-                    <Image className="w-14 h-14 rounded-full shadow-md object-cover" src={info.logo} alt="" width={80} height={80} />
-                ) : (
-                    <div className="w-14 h-14 rounded-full shadow-md bg-slate-200" />
-                )}
-                 <p className="text-slate-700 font-medium">{info?.name}</p>
-             </div>
+        <div className="w-64 h-full bg-white border-r border-slate-200 hidden lg:flex flex-col p-6">
 
-            <div className="max-sm:mt-6">
-                {
-                    sidebarLinks.map((link, index) => (
-                        <Link key={index} href={link.href} className={`relative flex items-center gap-3 text-slate-500 hover:bg-slate-50 p-2.5 transition ${pathname === link.href && 'bg-slate-100 sm:text-slate-600'}`}>
-                            <link.icon size={18} className="sm:ml-5" />
-                            <p className="max-sm:hidden">{link.name}</p>
-                            {pathname === link.href && <span className="absolute bg-blue-500 right-0 top-1.5 bottom-1.5 w-1 sm:w-1.5 rounded-l"></span>}
-                        </Link>
-                    ))
-                }
+            <div className="flex items-center gap-3 mb-10">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100">
+                    {info?.logo ? (
+                        <Image src={info.logo} alt={info?.name} fill className="object-cover" />
+                    ) : (
+                        <div className="w-full h-full bg-slate-200" />
+                    )}
+                </div>
+                <div>
+                    <h2 className="font-bold text-sm">{info?.name}</h2>
+                    <p className="text-xs text-slate-500">Manage your services</p>
+                </div>
             </div>
+
+            <nav className="space-y-1 flex-1">
+                {sidebarLinks.map((link) => (
+                    <Link
+                        key={link.href}
+                        href={link.href}
+                        className={clsx(
+                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium",
+                            pathname === link.href || pathname.startsWith(link.href + '/')
+                                ? "bg-blue-600 text-white"
+                                : "text-slate-600 hover:bg-slate-50"
+                        )}
+                    >
+                        <link.icon size={20} />
+                        <span>{link.name}</span>
+                    </Link>
+                ))}
+            </nav>
         </div>
     )
 }
