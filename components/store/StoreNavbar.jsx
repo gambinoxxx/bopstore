@@ -1,18 +1,22 @@
-'use client'
-import React from 'react'
-import { UserButton } from '@clerk/nextjs'
-import { Menu } from 'lucide-react'
+import { useUser,UserButton } from "@clerk/nextjs"
+import Link from "next/link"
 
 const StoreNavbar = () => {
+
+     const {user} = useUser()
+
     return (
-        <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-12 sticky top-0 z-10 shrink-0">
-            <div className="flex items-center gap-4">
-                <button className="lg:hidden p-2 -ml-2 text-slate-600">
-                    <Menu size={24} />
-                </button>
-                <h1 className="font-bold text-xl text-slate-900">GoCart Store</h1>
+        <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
+            <Link href="/" className="relative text-4xl font-semibold text-slate-700">
+                <span className="text-green-600">Bop</span>store<span className="text-green-600 text-5xl leading-0">.</span>
+                <p className="absolute text-xs font-semibold -top-1 -right-11 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
+                    Store
+                </p>
+            </Link>
+            <div className="flex items-center gap-3">
+                <p>Hi, {user?.firstName}</p> 
+                <UserButton />
             </div>
-            <UserButton afterSignOutUrl="/"/>
         </div>
     )
 }
