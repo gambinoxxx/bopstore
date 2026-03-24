@@ -6,14 +6,15 @@ import ServiceSidebar from './ServiceSidebar'
 const ServiceLayout = ({ children }) => {
     return (
         <DashboardLayout
-            apiEndpoint="/api/service/is-provider"
-            roleKey="isProvider"
-            infoKey="serviceInfo"
-            Navbar={ServiceNavbar}
-            Sidebar={ServiceSidebar}
-        >
-            {children}
-        </DashboardLayout>
+    apiEndpoint="/api/service/is-provider"
+    roleKey="isProvider"
+    infoKey="serviceInfo"
+    Navbar={ServiceNavbar}
+    Sidebar={ServiceSidebar}
+    infoProp="serviceInfo" // 👈 same idea
+>
+    {children}
+</DashboardLayout>
     )
 }
 
