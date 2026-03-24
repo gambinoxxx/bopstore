@@ -23,7 +23,7 @@ export default function AdminStores() {
                 Authorization: `Bearer ${token}`
             }
         })
-        setStores(data.stores)
+        setStores(data.listings || [])
     }catch(error){
         toast.error(error?.response?.data?.error ||error.message )
     }
@@ -55,7 +55,7 @@ export default function AdminStores() {
         <div className="text-slate-500 mb-28">
             <h1 className="text-2xl">Live <span className="text-slate-800 font-medium">Stores</span></h1>
 
-            {stores.length ? (
+            {stores?.length > 0 ? (
                 <div className="flex flex-col gap-4 mt-4">
                     {stores.map((store) => (
                         <div key={store.id} className="bg-white border border-slate-200 rounded-lg shadow-sm p-6 flex max-md:flex-col gap-4 md:items-end max-w-4xl" >
