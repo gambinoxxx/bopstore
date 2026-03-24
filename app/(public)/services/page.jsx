@@ -4,14 +4,16 @@ import { motion } from 'framer-motion'
 import { Scissors, Wrench, Utensils, Hammer, Star, MapPin, MessageSquare, Search, Filter, SprayCan, Droplet, Plus, Loader2, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 import Container from '@/components/Container'
-import { useUser } from '@clerk/nextjs'
+import { useUser, useAuth } from '@clerk/nextjs'
 
 const ServicesPage = () => {
     const [activeCategory, setActiveCategory] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
     const [providers, setProviders] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isProvider, setIsProvider] = useState(false)
     const { isSignedIn } = useUser()
+    const { getToken } = useAuth()
 
     const categories = [
         { id: 'all', name: 'All', icon: Filter },
@@ -31,7 +33,7 @@ const ServicesPage = () => {
                 if (activeCategory !== 'all') params.append('category', activeCategory)
                 if (searchQuery) params.append('search', searchQuery)
                 
-                const res = await fetch(`/api/services?${params.toString()}`)
+                const res = await fetch(`/api/service?${params.toString()}`)
                 const data = await res.json()
                 setProviders(data)
             } catch (error) {
@@ -47,6 +49,24 @@ const ServicesPage = () => {
 
         return () => clearTimeout(timeoutId)
     }, [activeCategory, searchQuery])
+
+    useEffect(() => {
+        const checkProviderStatus = async () => {
+            if (isSignedIn) {
+                try {
+                    const token = await getToken()
+                    const res = await fetch('/api/service/is-provider', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                    const data = await res.json()
+                    setIsProvider(data.isProvider)
+                } catch (error) {
+                    console.error("Failed to check provider status", error)
+                }
+            }
+        }
+        checkProviderStatus()
+    }, [isSignedIn, getToken])
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -68,16 +88,17 @@ const ServicesPage = () => {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
-                            {isSignedIn && (
-                                <Link href="/my-services" className="flex items-center justify-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-colors whitespace-nowrap backdrop-blur-sm border border-white/20">
+                            {isProvider ? (
+                                <Link href="/service" className="flex items-center justify-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-colors whitespace-nowrap backdrop-blur-sm border border-white/20">
                                     <LayoutDashboard size={20} />
-                                    My Services
+                                    Dashboard
+                                </Link>
+                            ) : (
+                                <Link href="/services/create" className="flex items-center justify-center gap-2 px-6 py-4 bg-green-500 hover:bg-green-600 text-slate-900 font-bold rounded-full transition-colors whitespace-nowrap">
+                                    <Plus size={20} />
+                                    Register Service
                                 </Link>
                             )}
-                            <Link href="/services/create" className="flex items-center justify-center gap-2 px-6 py-4 bg-green-500 hover:bg-green-600 text-slate-900 font-bold rounded-full transition-colors whitespace-nowrap">
-                                <Plus size={20} />
-                                Register Service
-                            </Link>
                         </div>
                     </div>
                 </Container>

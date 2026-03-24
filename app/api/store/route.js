@@ -11,20 +11,17 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const services = await prisma.store.findMany({
-            where: {
-                userId,
-                type: 'service'
-            },
-            include: {
-                reviews: true
-            },
-            orderBy: { createdAt: 'desc' }
+        const store = await prisma.store.findUnique({
+            where: { userId }
         })
 
-        return NextResponse.json(services)
+        if (!store || store.type !== 'store') {
+            return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+        }
+
+        return NextResponse.json(store)
     } catch (error) {
-        console.error('MY_SERVICES_GET_ERROR', error)
+        console.error('STORE_GET_ERROR', error)
         return NextResponse.json({ error: 'Internal Error' }, { status: 500 })
     }
 }

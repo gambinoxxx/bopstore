@@ -23,7 +23,12 @@ export async function GET(request) {
             orderBy: { createdAt: 'desc' }     
         });
 
-        return NextResponse.json({ products });
+        // Filter out service products (identified by image folder 'service-products')
+        const filteredProducts = products.filter(product => 
+            !product.images || !product.images.some(img => img.includes('service-products'))
+        );
+
+        return NextResponse.json({ products: filteredProducts });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "An internal server error occurred"}, {status: 500 })

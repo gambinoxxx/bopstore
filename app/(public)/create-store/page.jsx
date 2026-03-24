@@ -40,7 +40,7 @@ export default function CreateStore() {
         try{
             const {data } = await axios.get('/api/store/create', {headers: 
                 {Authorization: `Bearer ${token}`}})
-                if (["approved", "rejected", "pending"].includes(data.status)){
+                if (data && data.type === 'store' && ["approved", "rejected", "pending"].includes(data.status)){
                     setStatus(data.status)
                     setAlreadySubmitted(true)
                     switch(data.status){
@@ -63,9 +63,13 @@ export default function CreateStore() {
                 }else{
                     setAlreadySubmitted(false)
                 }
-
         }catch (error){
-            toast.error(error?.response?.data?.error || error.message)
+            // If 404 or other errors, assume no store exists yet
+            if (error.response?.status === 404 || error.response?.status === 400) {
+                setAlreadySubmitted(false)
+            } else {
+                toast.error(error?.response?.data?.error || error.message)
+            }
         }
 
         
@@ -93,7 +97,7 @@ export default function CreateStore() {
             toast.success(data.message)
             await fetchSellerStatus()
         } catch(error){
-            toast.error(error.response?.data?.error || error.message)
+            toast.error(error?.response?.data?.error || error.message)
         }
     }
 

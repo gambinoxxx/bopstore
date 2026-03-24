@@ -1,38 +1,58 @@
 'use client'
-import { usePathname } from "next/navigation"
-import { HomeIcon, LayoutListIcon, SquarePenIcon, SquarePlusIcon } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
+import React from 'react'
+import Link from 'next/link'
+import { LayoutDashboard, ShoppingBag, Settings, LogOut } from 'lucide-react'
+import { useClerk } from '@clerk/nextjs'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import clsx from 'clsx'
 
-const StoreSidebar = ({storeInfo}) => {
-
+const StoreSidebar = ({ info }) => {
+    const { signOut } = useClerk()
     const pathname = usePathname()
 
-    const sidebarLinks = [
-        { name: 'Dashboard', href: '/store', icon: HomeIcon },
-        { name: 'Add Product', href: '/store/add-product', icon: SquarePlusIcon },
-        { name: 'Manage Product', href: '/store/manage-product', icon: SquarePenIcon },
-        { name: 'Orders', href: '/store/orders', icon: LayoutListIcon },
+    const navItems = [
+        { label: 'Overview', href: '/store', icon: LayoutDashboard },
+        { label: 'Products', href: '/store/products', icon: ShoppingBag },
+        { label: 'Settings', href: '/store/settings', icon: Settings },
     ]
 
     return (
-        <div className="inline-flex h-full flex-col gap-5 border-r border-slate-200 sm:min-w-60">
-            <div className="flex flex-col gap-3 justify-center items-center pt-8 max-sm:hidden">
-                <Image className="w-14 h-14 rounded-full shadow-md" src={storeInfo?.logo} alt="" width={80} height={80} />
-                <p className="text-slate-700">{storeInfo?.name}</p>
+        <div className="w-64 h-full bg-white border-r border-slate-200 hidden lg:flex flex-col p-6">
+            <div className="flex items-center gap-3 mb-10">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100 shrink-0">
+                    {info?.logo ? (
+                        <Image src={info.logo} alt={info.name || 'Store'} fill className="object-cover" />
+                    ) : (
+                        <div className="w-full h-full bg-slate-200" />
+                    )}
+                </div>
+                <div className="overflow-hidden">
+                    <h2 className="font-bold text-slate-900 text-sm truncate">{info?.name || 'Store Dashboard'}</h2>
+                    <p className="text-xs text-slate-500 truncate">Manage your store</p>
+                </div>
             </div>
 
-            <div className="max-sm:mt-6">
-                {
-                    sidebarLinks.map((link, index) => (
-                        <Link key={index} href={link.href} className={`relative flex items-center gap-3 text-slate-500 hover:bg-slate-50 p-2.5 transition ${pathname === link.href && 'bg-slate-100 sm:text-slate-600'}`}>
-                            <link.icon size={18} className="sm:ml-5" />
-                            <p className="max-sm:hidden">{link.name}</p>
-                            {pathname === link.href && <span className="absolute bg-green-500 right-0 top-1.5 bottom-1.5 w-1 sm:w-1.5 rounded-l"></span>}
-                        </Link>
-                    ))
-                }
-            </div>
+            <nav className="space-y-1 flex-1">
+                {navItems.map((item) => (
+                    <Link 
+                        key={item.href} 
+                        href={item.href} 
+                        className={clsx(
+                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-sm",
+                            pathname === item.href ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        )}
+                    >
+                        <item.icon size={20} />
+                        <span>{item.label}</span>
+                    </Link>
+                ))}
+            </nav>
+
+            <button onClick={() => signOut()} className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors mt-auto w-full text-sm font-medium">
+                <LogOut size={20} />
+                <span>Sign Out</span>
+            </button>
         </div>
     )
 }

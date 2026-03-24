@@ -15,7 +15,6 @@ export async function POST(request) {
         const email = formData.get('email')
         const whatsappNumber = formData.get('whatsappNumber')
         const logoFile = formData.get('logo')
-        const portfolioFiles = formData.getAll('images')
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -54,21 +53,6 @@ export async function POST(request) {
                     transformation: [{ quality: "auto" }, { format: "Webp" }, { width: "512" }]
                 })
             }
-
-            // Upload Portfolio Images
-            if (portfolioFiles && portfolioFiles.length > 0) {
-                for (const file of portfolioFiles) {
-                    if (file.size > 0) {
-                        const buffer = Buffer.from(await file.arrayBuffer())
-                        const response = await imagekit.upload({
-                            file: buffer,
-                            fileName: file.name,
-                            folder: "service-portfolio"
-                        })
-                        imageUrls.push(response.url)
-                    }
-                }
-            }
         } catch (error) {
             console.error('IMAGE_UPLOAD_ERROR', error)
             return NextResponse.json({ error: 'Image upload failed. Please check your network connection.' }, { status: 502 })
@@ -91,7 +75,7 @@ export async function POST(request) {
                 email,
                 images: imageUrls,
                 logo: logoUrl,
-                rating: 5.0,
+                rating: 0,
                 isActive: false, // Service must be approved by admin
                 status: 'pending'
             }

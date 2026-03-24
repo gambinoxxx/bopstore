@@ -1,62 +1,49 @@
 'use client'
-import { useEffect, useState } from "react"
-import axios from "axios"
-import Loading from "../Loading"
-import Link from "next/link"
-import { ArrowRightIcon } from "lucide-react"
-import SellerNavbar from "./StoreNavbar"
-import SellerSidebar from "./StoreSidebar"
-import { useAuth, useUser } from "@clerk/nextjs"
+import DashboardLayout from '@/components/DashboardLayout'
+import StoreNavbar from './StoreNavbar'
+import StoreSidebar from './StoreSidebar'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { useAuth } from '@clerk/nextjs'
+import axios from 'axios'
 
 const StoreLayout = ({ children }) => {
+    const pathname = usePathname()
+    const router = useRouter()
+    const { getToken } = useAuth()
 
-    const {getToken} = useAuth()
-    const {isLoaded} = useUser()
+    // Bypass the dashboard layout (and its API check) for the create store page
+    if (pathname?.includes('/create')) {
+        return <div className="min-h-screen bg-slate-50">{children}</div>
+    }
 
-    const [isSeller, setIsSeller] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [storeInfo, setStoreInfo] = useState(null)
-
+    // Check if store exists, if not redirect to create
     useEffect(() => {
-        if (isLoaded) {
-            const fetchIsSeller = async () => {
-                try {
-                    const token = await getToken()
-                    const {data} = await axios.get('/api/store/is-seller',{headers:{
-                        Authorization: `Bearer ${token}`
-                    }})
-                    setIsSeller(data.isSeller)
-                    setStoreInfo(data.storeInfo)
-                } catch (error) {
-                    console.log(error)
-                }
-                finally{
-                    setLoading(false)
+        const checkStore = async () => {
+            try {
+                const token = await getToken()
+                await axios.get('/api/store', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            } catch (error) {
+                if (error.response?.status === 404) {
+                    router.push('/create-store')
                 }
             }
-            fetchIsSeller()
         }
-    }, [isLoaded, getToken])
+        checkStore()
+    }, [router, getToken])
 
-    return loading ? (
-        <Loading />
-    ) : isSeller ? (
-        <div className="flex flex-col h-screen">
-            <SellerNavbar />
-            <div className="flex flex-1 items-start h-full overflow-y-scroll no-scrollbar">
-                <SellerSidebar storeInfo={storeInfo} />
-                <div className="flex-1 h-full p-5 lg:pl-12 lg:pt-12 overflow-y-scroll">
-                    {children}
-                </div>
-            </div>
-        </div>
-    ) : (
-        <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-            <h1 className="text-2xl sm:text-4xl font-semibold text-slate-400">You are not authorized to access this page</h1>
-            <Link href="/" className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full">
-                Go to home <ArrowRightIcon size={18} />
-            </Link>
-        </div>
+    return (
+        <DashboardLayout
+            apiEndpoint="/api/store"
+            roleKey="isStore"
+            infoKey="store"
+            Navbar={StoreNavbar}
+            Sidebar={StoreSidebar}
+        >
+            {children}
+        </DashboardLayout>
     )
 }
 

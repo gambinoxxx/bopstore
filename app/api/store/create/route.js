@@ -1,128 +1,80 @@
+import { NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { getAuth } from '@clerk/nextjs/server'
 import imagekit from "@/configs/imageKit";
-import {getAuth} from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
-//create the store
+export const dynamic = 'force-dynamic'
 
-export async function POST(request){
+export async function GET(request) {
     try {
-        const {userId} = getAuth(request);
-        //get the data from the form 
-        const formData = await request.formData()
-
-        const name = formData.get("name")
-        const username = formData.get("username")
-        const description = formData.get("description")
-        const email = formData.get("email")
-        const contact = formData.get("contact")
-        const address = formData.get("address")
-        const image = formData.get("image")
-
-        // Check each field individually and log which one is missing
-if (!name) {
-    console.log("Name is missing");
-}
-if (!username) {
-    console.log("Username is missing");
-}
-if (!description) {
-    console.log("Description is missing");
-}
-if (!email) {
-    console.log("Email is missing");
-}
-if (!contact) {
-    console.log("Contact is missing");
-}
-if (!address) {
-    console.log("Address is missing");
-}
-if (!image) {
-    console.log("Image is missing");
-}
-        if(!name || !username || !description || !email || !contact || !address || !image){
-            return NextResponse.json({error: "missing store information"}, {status: 400})
+        const { userId } = getAuth(request)
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
-        //check if the user already has a store
-        const store = await prisma.store.findFirst({
-            where: {
-                userId: userId
-            }
+
+        // Strictly find the store for THIS user
+        const store = await prisma.store.findUnique({
+            where: { userId }
         })
-        //if store is already registered then send status of store
-        if(store){
-            return NextResponse.json({status: store.status})
+
+        if (!store) {
+            // Return a neutral response if no store exists, so the form can be shown
+            return NextResponse.json({ status: 'none' })
         }
 
-    //check is username is already taken
-    const isUsernameTaken = await prisma.store.findFirst({
-        where: {
-            username: username.toLowerCase()
-        }
-    })
-    if(isUsernameTaken){
-        return NextResponse.json({error: "username is already taken"}, {status: 400})
-    }
-    // image upload to imagekit
-    const buffer = Buffer.from(await image.arrayBuffer());
-    const response = await imagekit.upload({
-        file: buffer,
-        fileName: image.name,
-        folder: "logos"
-    })
-
-    const optimizedImage = imagekit.url({
-        path: response.filePath,
-        transformation: [
-            {quality: "auto"},
-            {format: "Webp"},
-            {width: "512"}
-        ]
-    })
-    const newStore = await prisma.store.create({
-        data: {
-            userId,
-            name,
-            description,
-            username: username.toLowerCase(),
-            email,
-            contact,
-            address,
-            logo: optimizedImage
-        }
-    })
-    // link stone to user 
-    await prisma.user.update({
-        where: {id: userId},
-        data: {store: {connect: {id: newStore.id}}}
-    })
-    return NextResponse.json({message:"applied, waiting for approval"})
-}
-    catch (error) {
-        console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status: 400})
-
-    }
-}
-// check is user have already registered a store if yes then send status of the store
-export async function GET(request){
-    try {
-        const {userId} = getAuth(request);
-          //check if the user already has a store
-          const store = await prisma.store.findFirst({
-            where: {
-                userId: userId
-            }
-        })
-        //if store is already registered then send status of store
-        if(store){
-            return NextResponse.json({status: store.status, type: store.type})
-        }
-        return NextResponse.json({status: "not registered"})
-
+        return NextResponse.json(store)
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({error: error.code || error.message}, {status: 400})     
+        console.error('STORE_CREATE_GET_ERROR', error)
+        return NextResponse.json({ error: 'Internal Error' }, { status: 500 })
+    }
+}
+
+export async function POST(request) {
+    try {
+        const { userId } = getAuth(request)
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        // Check if user already has ANY store record (Service or Store)
+        const existingStore = await prisma.store.findUnique({
+            where: { userId }
+        })
+
+        if (existingStore) {
+            const msg = existingStore.type === 'service' 
+                ? 'You are already registered as a Service Provider. You cannot create a Store account on this profile.' 
+                : 'You already have a Store account.'
+            return NextResponse.json({ error: msg }, { status: 400 })
+        }
+
+        const formData = await request.formData()
+        const name = formData.get('name')
+        const description = formData.get('description')
+        const username = formData.get('username')
+        const email = formData.get('email')
+        const contact = formData.get('contact')
+        const address = formData.get('address')
+        const image = formData.get('image')
+
+        let logoUrl = ''
+        if (image && image.size > 0) {
+            const buffer = Buffer.from(await image.arrayBuffer())
+            const response = await imagekit.upload({
+                file: buffer,
+                fileName: `store-${userId}-${Date.now()}`,
+                folder: 'store-logos'
+            })
+            logoUrl = response.url
+        }
+
+        await prisma.store.create({
+            data: { userId, name, description, username, email, contact, address, logo: logoUrl, type: 'store', status: 'pending' }
+        })
+
+        return NextResponse.json({ message: 'Store request submitted successfully!' })
+    } catch (error) {
+        console.error('STORE_CREATE_POST_ERROR', error)
+        return NextResponse.json({ error: error.message || 'Internal Error' }, { status: 500 })
     }
 }

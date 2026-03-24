@@ -183,6 +183,8 @@ model Store {
     Order   Order[]
     user    User      @relation(fields: [userId], references: [id])
     reviews Review[]
+    appointments Appointment[]
+
 }
 model VendorRanking {
   id        String   @id @default(cuid())
@@ -225,4 +227,21 @@ model Review {
   comment           String
   rating            Int
   createdAt         DateTime        @default(now())
+}
+model Appointment {
+  id             String   @id @default(cuid())
+  customerName   String
+  customerEmail  String
+  phone          String?
+  whatsapp       String?
+  date           DateTime
+  notes          String?
+  status         String   @default("pending")
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id])
+  
+  customerUserId String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

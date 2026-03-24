@@ -18,15 +18,26 @@ export default function Product() {
     useEffect(() => {
         const fetchProduct = async () => {
             setLoading(true);
+
+            // Helper to check if a product is a service offering
+            const isServiceProduct = (p) => {
+                return p?.images?.some(img => img.includes('service-products'));
+            };
+
             // First, try to find the product in the Redux store
             let foundProduct = products.find((p) => p.id === productId);
+
+            // If found in Redux but it's a service product, invalidate it
+            if (isServiceProduct(foundProduct)) {
+                foundProduct = null;
+            }
 
             // If not found in Redux, fetch from the API as a fallback
             if (!foundProduct && productId) {
                 try {
                     const { data } = await axios.get(`/api/products/${productId}`);
-                    // If the product exists but is archived or its store is inactive, treat it as not found.
-                    if (data.product && (data.product.isArchived || !data.product.store.isActive)) {
+                    // If the product exists but is archived, store inactive, or is a service product, treat as not found.
+                    if (data.product && (data.product.isArchived || !data.product.store.isActive || isServiceProduct(data.product))) {
                         foundProduct = null; // Explicitly set to null so the "Not Found" message shows.
                     } else {
                         foundProduct = data.product;

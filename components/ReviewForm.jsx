@@ -7,14 +7,13 @@ const ReviewForm = ({ storeId, onReviewSubmitted }) => {
     const [rating, setRating] = useState(0)
     const [hoverRating, setHoverRating] = useState(0)
     const [comment, setComment] = useState('')
-    const [user, setUser] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (rating === 0 || !comment.trim() || !user.trim()) {
-            setError('Please provide a name, rating, and comment.')
+        if (rating === 0 || !comment.trim()) {
+            setError('Please provide a rating and comment.')
             return
         }
         setIsLoading(true)
@@ -23,8 +22,8 @@ const ReviewForm = ({ storeId, onReviewSubmitted }) => {
         try {
             const res = await fetch('/api/reviews', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ storeId, rating, comment, user }),
+                headers: { 'Content-Type': 'application/json' }, // The 'user' field is now handled by the backend
+                body: JSON.stringify({ storeId, rating, comment }),
             })
 
             if (res.ok) {
@@ -33,7 +32,6 @@ const ReviewForm = ({ storeId, onReviewSubmitted }) => {
                 // Reset form
                 setRating(0)
                 setComment('')
-                setUser('')
             } else {
                 const errData = await res.json()
                 setError(errData.error || 'Failed to submit review.')
@@ -48,16 +46,6 @@ const ReviewForm = ({ storeId, onReviewSubmitted }) => {
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <h3 className="text-lg font-bold text-slate-800">Leave a Review</h3>
-            {/* <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Your Name</label>
-                <input
-                    type="text"
-                    value={user}
-                    onChange={(e) => setUser(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-slate-900 outline-none"
-                    placeholder="e.g. John Doe"
-                />
-            </div> */}
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Rating</label>
                 <div className="flex items-center gap-1">
