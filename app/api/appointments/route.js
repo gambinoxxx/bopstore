@@ -72,9 +72,11 @@ export async function POST(request) {
             html: customerHtml
         }));
 
-        // Fire off emails in the background - DO NOT AWAIT
-        Promise.all(notificationPromises).catch(err => 
-            console.error("Background Appointment Email Error:", err)
+        // --- Vercel Optimization ---
+        // On Vercel, we MUST await these or the serverless function 
+        // will kill the process before the email is sent.
+        await Promise.all(notificationPromises).catch(err => 
+            console.error("Appointment Email Error:", err)
         );
 
         // Respond immediately to the user
