@@ -25,6 +25,7 @@ const ServiceDetailsClient = () => {
         date: '',
         notes: ''
     })
+    const [isSubmittingAppointment, setIsSubmittingAppointment] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
 
     // Lightbox State
@@ -108,6 +109,7 @@ const ServiceDetailsClient = () => {
 
     const handleAppointmentSubmit = async (e) => {
         e.preventDefault()
+        setIsSubmittingAppointment(true)
         try {
             const res = await fetch('/api/appointments', {
                 method: 'POST',
@@ -124,6 +126,8 @@ const ServiceDetailsClient = () => {
             }
         } catch (error) {
             toast.error("An error occurred")
+        } finally {
+            setIsSubmittingAppointment(false)
         }
     }
 
@@ -238,8 +242,19 @@ const ServiceDetailsClient = () => {
                                                 <input required name="date" type="datetime-local" value={appointmentData.date} onChange={handleAppointmentChange} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
                                             </div>
                                             <textarea name="notes" value={appointmentData.notes} onChange={handleAppointmentChange} placeholder="Additional Notes (Optional)" rows={3} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500 resize-none" />
-                                            <button type="submit" className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors">
-                                                Confirm Booking
+                                            <button 
+                                                type="submit" 
+                                                disabled={isSubmittingAppointment}
+                                                className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                {isSubmittingAppointment ? (
+                                                    <>
+                                                        <Loader2 className="animate-spin" size={20} />
+                                                        Processing...
+                                                    </>
+                                                ) : (
+                                                    "Confirm Booking"
+                                                )}
                                             </button>
                                         </form>
                                     </div>
