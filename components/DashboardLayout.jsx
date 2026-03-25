@@ -23,6 +23,9 @@ const DashboardLayout = ({
     const [loading, setLoading] = useState(true)
     const [entityInfo, setEntityInfo] = useState(null)
 
+    // ✅ NEW: mobile sidebar state
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+
     useEffect(() => {
         if (!isLoaded) return
 
@@ -61,14 +64,39 @@ const DashboardLayout = ({
         <Loading />
     ) : hasRole ? (
         <div className="flex flex-col h-screen">
-            <Navbar />
+
+            {/* ✅ Pass toggle to navbar */}
+            <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
             <div className="flex flex-1 items-start h-full overflow-hidden">
-                <Sidebar info={entityInfo} />
 
+                {/* ✅ DESKTOP SIDEBAR */}
+                <div className="hidden lg:flex">
+                    <Sidebar info={entityInfo} />
+                </div>
+
+                {/* ✅ MOBILE SIDEBAR */}
+                {sidebarOpen && (
+                    <div className="fixed inset-0 z-50 flex">
+
+                        {/* Overlay */}
+                        <div
+                            className="fixed inset-0 bg-black/40"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+
+                        {/* Sidebar Drawer */}
+                        <div className="relative z-50 w-64 h-full bg-white shadow-lg">
+                            <Sidebar info={entityInfo} />
+                        </div>
+                    </div>
+                )}
+
+                {/* MAIN CONTENT */}
                 <div className="flex-1 h-full p-5 lg:pl-12 lg:pt-12 overflow-y-auto">
                     {children}
                 </div>
+
             </div>
         </div>
     ) : (
