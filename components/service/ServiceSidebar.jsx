@@ -1,20 +1,10 @@
 'use client'
 
-import { usePathname } from "next/navigation"
-import {
-    HomeIcon,
-    LayoutListIcon,
-    SquarePenIcon,
-    SquarePlusIcon,
-    SettingsIcon
-} from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import clsx from "clsx"
+import { HomeIcon, LayoutListIcon, SquarePenIcon, SquarePlusIcon, SettingsIcon } from 'lucide-react'
+import Image from 'next/image'
+import clsx from 'clsx'
 
-const ServiceSidebar = ({ info }) => {
-
-    const pathname = usePathname()
+const ServiceSidebar = ({ info, closeSidebar }) => {
 
     const sidebarLinks = [
         { name: 'Dashboard', href: '/service', icon: HomeIcon },
@@ -24,9 +14,13 @@ const ServiceSidebar = ({ info }) => {
         { name: 'Settings', href: '/service/settings', icon: SettingsIcon },
     ]
 
+    const handleClick = (href) => {
+        if (closeSidebar) closeSidebar() // auto-close on mobile
+        window.location.href = href
+    }
+
     return (
         <div className="w-64 h-full bg-white border-r border-slate-200 flex flex-col p-6">
-
             {/* Service Info */}
             <div className="flex items-center gap-3 mb-10">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100">
@@ -37,7 +31,7 @@ const ServiceSidebar = ({ info }) => {
                     )}
                 </div>
                 <div>
-                    <h2 className="font-bold text-sm truncate">{info?.name}</h2>
+                    <h2 className="font-bold text-sm">{info?.name}</h2>
                     <p className="text-xs text-slate-500">Manage your services</p>
                 </div>
             </div>
@@ -45,19 +39,19 @@ const ServiceSidebar = ({ info }) => {
             {/* Navigation */}
             <nav className="space-y-1 flex-1">
                 {sidebarLinks.map((link) => (
-                    <Link
+                    <button
                         key={link.href}
-                        href={link.href}
+                        onClick={() => handleClick(link.href)}
                         className={clsx(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
-                            pathname === link.href || pathname.startsWith(link.href + '/')
+                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-left",
+                            window.location.pathname.startsWith(link.href)
                                 ? "bg-blue-600 text-white"
                                 : "text-slate-600 hover:bg-slate-50"
                         )}
                     >
                         <link.icon size={20} />
                         <span>{link.name}</span>
-                    </Link>
+                    </button>
                 ))}
             </nav>
         </div>
