@@ -25,8 +25,9 @@ const ServiceSidebar = ({ info }) => {
     ]
 
     return (
-        <div className="w-64 h-full bg-white border-r border-slate-200 hidden lg:flex flex-col p-6">
+        <div className="w-64 h-full bg-white border-r border-slate-200 flex flex-col p-6">
 
+            {/* Service Info */}
             <div className="flex items-center gap-3 mb-10">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden bg-slate-100">
                     {info?.logo ? (
@@ -36,18 +37,19 @@ const ServiceSidebar = ({ info }) => {
                     )}
                 </div>
                 <div>
-                    <h2 className="font-bold text-sm">{info?.name}</h2>
+                    <h2 className="font-bold text-sm truncate">{info?.name}</h2>
                     <p className="text-xs text-slate-500">Manage your services</p>
                 </div>
             </div>
 
+            {/* Navigation */}
             <nav className="space-y-1 flex-1">
                 {sidebarLinks.map((link) => (
                     <Link
                         key={link.href}
                         href={link.href}
                         className={clsx(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium",
+                            "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                             pathname === link.href || pathname.startsWith(link.href + '/')
                                 ? "bg-blue-600 text-white"
                                 : "text-slate-600 hover:bg-slate-50"
