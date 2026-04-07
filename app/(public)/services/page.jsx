@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Scissors, Wrench, Utensils, Hammer, Star, MapPin, MessageSquare, Search, Filter, SprayCan, Droplet, Plus, Loader2, LayoutDashboard } from 'lucide-react'
+import { Scissors, Wrench, Utensils, Hammer, Star, MapPin, MessageSquare, Search, Filter, SprayCan, Droplet, Plus, Loader2, LayoutDashboard, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import Container from '@/components/Container'
 import { useUser, useAuth } from '@clerk/nextjs'
@@ -83,10 +83,20 @@ const ServicesPage = () => {
                                 <input 
                                     type="text" 
                                     placeholder="Search for services or location..." 
-                                    className="w-full pl-12 pr-4 py-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                                    className="w-full pl-12 pr-28 py-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
+                                <button 
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-slate-900 text-xs font-bold rounded-full transition-all"
+                                    onClick={() => {
+                                        // Dispatch a custom event to open the OgeChatWidget with the current search query
+                                        window.dispatchEvent(new CustomEvent('open-oge-chat', { detail: { query: searchQuery } }));
+                                    }}
+                                >
+                                    <Sparkles size={14} />
+                                    Ask Oge
+                                </button>
                             </div>
                             {isProvider ? (
                                 <Link href="/service" className="flex items-center justify-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition-colors whitespace-nowrap backdrop-blur-sm border border-white/20">

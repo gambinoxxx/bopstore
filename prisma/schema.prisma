@@ -175,6 +175,8 @@ model Store {
     images      String[] @default([])
     type        String   @default("store") // "store" or "service"
     category    String?  // e.g. "tailor", "mechanic"
+    latitude    Float?   // Added for geospatial search
+    longitude   Float?   // Added for geospatial search
     rating      Float    @default(0)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt

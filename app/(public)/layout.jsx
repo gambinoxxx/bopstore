@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "@/lib/features/product/productSlice";
 import { useAuth, useUser } from "@clerk/nextjs";
 import WhatsAppWidget from "@/components/WhatsAppWidget"; // Import the new component
+import OgeChatWidget from "@/components/JoeChatWidget";
 import { fetchCart, uploadCart } from "@/lib/features/cart/cartSlice";
 import { fetchAddress } from "@/lib/features/address/addressSlice";
 import { fetchUserRatings } from "@/lib/features/rating/ratingSlice";
@@ -47,6 +48,7 @@ export default function PublicLayout({ children }) {
             {children}
             <PromoPopup /> {/* Add the popup here */}
             <WhatsAppWidget /> {/* Add the widget here */}
+            <OgeChatWidget /> {/* Oge is now accessible globally */}
             <Footer />
         </>
     );
