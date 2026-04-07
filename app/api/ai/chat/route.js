@@ -1,105 +1,151 @@
-import { NextResponse } from 'next/server';
-import { detectIntent } from '@/lib/ai/intentDetector';
-import { searchProduct } from '@/lib/ai/productService';
-import { findNearbyServices } from '@/lib/ai/serviceService';
-import { createAppointment } from '@/lib/ai/bookingService';
-import { generateProductResponse, generateServiceResponse } from '@/lib/ai/responseGenerator';
-import { getAuth, clerkClient } from '@clerk/nextjs/server';
-import prisma from '@/lib/prisma'; // Needed to fetch service details for booking confirmation
+import { NextResponse } from "next/server";
+import { detectIntent } from "@/lib/ai/intentDetector";
+import { searchProduct } from "@/lib/ai/productService";
+import { findNearbyServices } from "@/lib/ai/serviceService";
+import { createAppointment } from "@/lib/ai/bookingService";
+import {
+  generateProductResponse,
+  generateServiceResponse,
+} from "@/lib/ai/responseGenerator";
+import { getAuth, clerkClient } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(request) {
   try {
-    const { userId } = getAuth(request); 
-    const user = userId ? await clerkClient.users.getUser(userId) : null;
-    const { message, latitude, longitude, history } = await request.json(); // Assume frontend sends message and optionally location
+    const { userId } = getAuth(request);
+    const user = userId
+      ? await clerkClient.users.getUser(userId)
+      : null;
+
+    const { message, latitude, longitude, history } =
+      await request.json();
 
     if (!message) {
-      return NextResponse.json({ error: "Message is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Message is required" },
+        { status: 400 }
+      );
     }
 
-    // Step 1: Detect intent and extract entities using OpenAI
-    const aiResponse = await detectIntent(message, null, { latitude, longitude }, history);
-    const toolCall = aiResponse.tool_calls?.[0];
+    // 🧠 STEP 1: Detect intent (Gemini version)
+    const intentData = await detectIntent(
+      message,
+      { latitude, longitude },
+      history
+    );
 
-    if (toolCall) {
-      const functionName = toolCall.function.name;
-      const functionArgs = JSON.parse(toolCall.function.arguments);
+    console.log("🧠 Intent:", intentData);
 
-      switch (functionName) {
-        case 'search_product': {
-          const products = await searchProduct(functionArgs.query);
-          return NextResponse.json(generateProductResponse(products));
-        }
-        case 'add_to_cart': {
-          const qty = functionArgs.quantity || 1;
+    // 🧠 STEP 2: Handle intent
+    switch (intentData.intent) {
+      case "search_product": {
+        const products = await searchProduct(
+          intentData.query || message
+        );
+
+        return NextResponse.json(
+          generateProductResponse(products)
+        );
+      }
+
+      case "find_service": {
+        if (!latitude || !longitude) {
           return NextResponse.json({
-            intent: "add_to_cart",
-            status: "success",
-            productId: functionArgs.product_id,
-            quantity: functionArgs.quantity || 1,
-            message: `Excellent choice! I've added ${qty} ${functionArgs.product_name || 'item(s)'} to your interest list. Would you like to check out now or keep looking?`,
+            intent: "find_service",
+            status: "missing_location",
+            message:
+              "I’ll need your location to find services near you 📍",
           });
         }
-        case 'find_service': {
-          // Ensure location is provided for service search
-          if (!latitude || !longitude) {
-            return NextResponse.json({
-              intent: "find_service",
-              status: "missing_location",
-              message: "I need your location to find nearby services. Could you please enable location services or tell me your general area?",
-            });
-          }
-          const services = await findNearbyServices(functionArgs.service_type, latitude, longitude);
-          return NextResponse.json(generateServiceResponse(services));
-        }
-        case 'book_appointment': {
-          // For booking, we need service_id and date_time.
-          // The AI might suggest this tool, but the actual booking flow might be multi-turn.
-          // For simplicity, we'll assume the frontend provides these after user selection.
-          // In a real chat, JOE would ask for confirmation and details.
-          if (!functionArgs.service_id || !functionArgs.date_time) {
-            // If user is not authenticated, prompt them to log in for booking
-            if (!userId) {
-              return NextResponse.json({ intent: "book_appointment", status: "unauthenticated", message: "Please log in to book an appointment." });
-            }
+
+        const services = await findNearbyServices(
+          intentData.service_type || "general",
+          latitude,
+          longitude
+        );
+
+        return NextResponse.json(
+          generateServiceResponse(services)
+        );
+      }
+
+      case "add_to_cart": {
+        return NextResponse.json({
+          intent: "add_to_cart",
+          status: "success",
+          message:
+            "Nice one 😄 I’ve added that to your cart. Want anything else?",
+        });
+      }
+
+      case "book_appointment": {
+        if (!intentData.service_id || !intentData.date_time) {
+          if (!userId) {
             return NextResponse.json({
               intent: "book_appointment",
-              status: "incomplete_details",
-              message: "To book an appointment, I need the service ID and a preferred date/time. Please select a service from the list or provide more details.",
+              status: "unauthenticated",
+              message:
+                "You’ll need to log in first so I can help you book that 👍",
             });
           }
 
-          const customerName = user?.fullName || 'Guest';
-          const customerEmail = user?.primaryEmailAddress?.emailAddress;
-
-          if (!customerEmail) {
-            return NextResponse.json({ error: "User email not found for booking." }, { status: 400 });
-          }
-
-          const appointment = await createAppointment(functionArgs.service_id, functionArgs.date_time, customerName, customerEmail);
-          
-          // Fetch service name for confirmation message
-          const service = await prisma.store.findUnique({ where: { id: functionArgs.service_id }, select: { name: true } });
           return NextResponse.json({
             intent: "book_appointment",
-            status: "success",
-            message: `Your appointment for ${service?.name || 'the service'} on ${new Date(functionArgs.date_time).toLocaleString()} has been requested. The provider will confirm shortly!`,
-            appointmentId: appointment.id,
+            status: "incomplete_details",
+            message:
+              "I need a service and time to book this. Just pick one and I’ll handle the rest 🙂",
           });
         }
-        default:
-          return NextResponse.json({ intent: "unknown", message: "I'm not sure how to handle that request." });
+
+        const customerName = user?.fullName || "Guest";
+        const customerEmail =
+          user?.primaryEmailAddress?.emailAddress;
+
+        if (!customerEmail) {
+          return NextResponse.json(
+            { error: "User email not found" },
+            { status: 400 }
+          );
+        }
+
+        const appointment = await createAppointment(
+          intentData.service_id,
+          intentData.date_time,
+          customerName,
+          customerEmail
+        );
+
+        const service = await prisma.store.findUnique({
+          where: { id: intentData.service_id },
+          select: { name: true },
+        });
+
+        return NextResponse.json({
+          intent: "book_appointment",
+          status: "success",
+          message: `You're all set 🎉 I've booked ${service?.name || "your service"} for ${new Date(intentData.date_time).toLocaleString()}. They'll confirm shortly!`,
+          appointmentId: appointment.id,
+        });
       }
-    } else {
-      // If no tool call, it's a general query or a follow-up
-      // You can send the responseMessage.content directly to the user
-      return NextResponse.json({
-        intent: "general_query",
-        message: aiResponse.content || "I'm here to help! What can I do for you?",
-      });
+
+      default:
+        return NextResponse.json({
+          intent: "general",
+          message:
+            "Hey 👋 I’m Oge. I can help you find products or services. What are you looking for today?",
+        });
     }
   } catch (error) {
-    console.error("Oge API Error:", error);
-    return NextResponse.json({ error: "Internal server error. Please try again later." }, { status: 500 });
+    console.error("🔥 Oge API Error:", error);
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
+
+    return NextResponse.json(
+      {
+        error:
+          "Something went wrong on my end 😅 Try again in a second.",
+      },
+      { status: 500 }
+    );
   }
 }
