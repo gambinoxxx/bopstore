@@ -27,7 +27,7 @@ export async function POST(request) {
       );
     }
 
-    // 🧠 STEP 1: Detect intent (Gemini version)
+    // 🧠 STEP 1: Detect intent (Groq version)
     const intentData = await detectIntent(
       message,
       { latitude, longitude },
@@ -40,7 +40,7 @@ export async function POST(request) {
     switch (intentData.intent) {
       case "search_product": {
         const products = await searchProduct(
-          intentData.query || message
+          intentData.query || intentData.product_name || message
         );
 
         return NextResponse.json(
@@ -73,8 +73,10 @@ export async function POST(request) {
         return NextResponse.json({
           intent: "add_to_cart",
           status: "success",
-          message:
-            "Nice one 😄 I’ve added that to your cart. Want anything else?",
+          productId: intentData.product_id,
+          quantity: intentData.quantity || 1,
+          content:
+            `Nice one 😄 I’ve added ${intentData.product_name || 'that'} to your cart. Want anything else?`,
         });
       }
 
@@ -123,7 +125,7 @@ export async function POST(request) {
         return NextResponse.json({
           intent: "book_appointment",
           status: "success",
-          message: `You're all set 🎉 I've booked ${service?.name || "your service"} for ${new Date(intentData.date_time).toLocaleString()}. They'll confirm shortly!`,
+          content: `You're all set 🎉 I've booked ${service?.name || "your service"} for ${new Date(intentData.date_time).toLocaleString()}. They'll confirm shortly!`,
           appointmentId: appointment.id,
         });
       }
@@ -131,8 +133,7 @@ export async function POST(request) {
       default:
         return NextResponse.json({
           intent: "general",
-          message:
-            "Hey 👋 I’m Oge. I can help you find products or services. What are you looking for today?",
+          content: intentData.content || "Hey 👋 I’m Oge. I can help you find products or services. What are you looking for today?",
         });
     }
   } catch (error) {
