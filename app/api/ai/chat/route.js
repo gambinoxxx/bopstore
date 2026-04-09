@@ -59,7 +59,8 @@ export async function POST(request) {
         const services = await findNearbyServices(
           intentData.service_type || "general",
           latitude,
-          longitude
+          longitude,
+          intentData.minRating
         );
 
         return NextResponse.json(
