@@ -39,9 +39,7 @@ export async function POST(request) {
     // 🧠 STEP 2: Handle intent
     switch (intentData.intent) {
       case "search_product": {
-        const products = await searchProduct(
-          intentData.query || intentData.product_name || message
-        );
+        const products = await searchProduct(intentData);
 
         return NextResponse.json(
           generateProductResponse(products)

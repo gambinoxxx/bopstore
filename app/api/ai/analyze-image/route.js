@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { searchProduct } from '@/lib/ai/productService';
-import { generateProductResponse } from '@/lib/ai/responseGenerator';
-import { openai } from '@/lib/ai/openaiClient';
+import { NextResponse } from "next/server";
+import { searchProduct } from "@/lib/ai/productService";
+import { generateProductResponse } from "@/lib/ai/responseGenerator";
+import { model } from "@/lib/ai/geminiClient";
 
 export async function POST(request) {
   try {
@@ -10,33 +10,26 @@ export async function POST(request) {
     const textMessage = formData.get('message') || "What is this product?"; // Optional text context
 
     if (!imageFile) {
-      return NextResponse.json({ error: "Image file is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Image file is required" },
+        { status: 400 }
+      );
     }
 
     const buffer = Buffer.from(await imageFile.arrayBuffer());
-    const base64Data = buffer.toString('base64');
-    const dataUrl = `data:${imageFile.type};base64,${base64Data}`;
+    const base64Data = buffer.toString("base64");
 
-    const response = await openai.chat.completions.create({
-      model: "llama-3.2-11b-vision-preview",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: textMessage },
-            {
-              type: "image_url",
-              image_url: { url: dataUrl },
-            },
-          ],
-        },
-      ],
-      max_tokens: 100,
-    });
+    // Native Gemini Vision Call
+    const result = await model.generateContent([
+      { text: textMessage + " Provide ONLY the exact product brand and name as searchable keywords." },
+      { inlineData: { data: base64Data, mimeType: imageFile.type } },
+    ]);
+
+    const description = result.response.text();
+    console.log("📸 Vision Keywords:", description);
     
-    const description = response.choices[0].message.content;
-    // We'll treat image analysis as a search query based on the description
-    const products = await searchProduct(description);
+    // Search using the highly accurate keywords from Gemini
+    const products = await searchProduct({ query: description });
 
     return NextResponse.json({
         ...generateProductResponse(products),
