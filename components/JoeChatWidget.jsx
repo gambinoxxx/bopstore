@@ -32,13 +32,23 @@ const OgeChatWidget = () => {
     }, [])
 
     // 2. Get user location on mount for "near me" accuracy
-    useEffect(() => {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
-            })
-        }
-    }, [])
+    const requestLocation = () => {
+        return new Promise((resolve) => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const loc = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+                        setLocation(loc);
+                        resolve(loc);
+                    },
+                    () => resolve(null),
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                resolve(null);
+            }
+        });
+    };
 
     // 3. Auto-scroll to bottom
     useEffect(() => {
@@ -53,6 +63,9 @@ const OgeChatWidget = () => {
         setMessages(prev => [...prev, userMessage])
         setInput('')
         setIsLoading(true)
+
+        // Ensure we try to get location on user gesture for mobile compatibility
+        const currentLoc = location || await requestLocation();
 
         try {
             const response = await fetch('/api/ai/chat', {
@@ -72,7 +85,7 @@ const OgeChatWidget = () => {
                         }
                         return { role: m.role, content: textContent || "" };
                     }),
-                    ...location 
+                    ...(currentLoc || {})
                 })
             })
             const data = await response.json()
@@ -153,7 +166,8 @@ const OgeChatWidget = () => {
                                     <div className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm ${
                                         msg.role === 'user' ? 'bg-green-500 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
                                     }`}>
-                                        {msg.content && <p className="leading-relaxed">{msg.content}</p>}
+                                        {/* Standardize rendering for both 'content' and 'message' keys */}
+                                        {(msg.content || msg.message) && <p className="leading-relaxed">{msg.content || msg.message}</p>}
                                         
                                         {/* Product Results */}
                                         {msg.products && (

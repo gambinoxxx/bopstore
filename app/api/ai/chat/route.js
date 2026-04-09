@@ -51,7 +51,7 @@ export async function POST(request) {
           return NextResponse.json({
             intent: "find_service",
             status: "missing_location",
-            message:
+            content:
               "I’ll need your location to find services near you 📍",
           });
         }
@@ -85,7 +85,7 @@ export async function POST(request) {
             return NextResponse.json({
               intent: "book_appointment",
               status: "unauthenticated",
-              message:
+              content:
                 "You’ll need to log in first so I can help you book that 👍",
             });
           }
@@ -93,7 +93,7 @@ export async function POST(request) {
           return NextResponse.json({
             intent: "book_appointment",
             status: "incomplete_details",
-            message:
+            content:
               "I need a service and time to book this. Just pick one and I’ll handle the rest 🙂",
           });
         }
