@@ -7,15 +7,15 @@ import {
   generateProductResponse,
   generateServiceResponse,
 } from "@/lib/ai/responseGenerator";
-import { getAuth, clerkClient } from "@clerk/nextjs/server";
+import { getAuth, currentUser } from "@clerk/nextjs/server"; // Import currentUser
 import prisma from "@/lib/prisma";
 
 export async function POST(request) {
   try {
     const { userId } = getAuth(request);
     const user = userId
-      ? await clerkClient.users.getUser(userId)
-      : null;
+      ? await currentUser() // Use currentUser() for a more robust way to get user details
+      : null; // currentUser() returns null if no user is signed in
 
     const { message, latitude, longitude, history } =
       await request.json();
