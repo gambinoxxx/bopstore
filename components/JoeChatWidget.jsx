@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, X, Send, Sparkles, Image as ImageIcon, Loader2, User, MapPin, ShoppingBag, Calendar } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { formatPrice } from '@/lib/formatPrice'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '@/lib/features/cart/cartSlice'
@@ -41,8 +42,8 @@ const OgeChatWidget = () => {
                         setLocation(loc);
                         resolve(loc);
                     },
-                    () => resolve(null),
-                    { enableHighAccuracy: true, timeout: 5000 }
+                    (err) => { console.warn("Location error:", err); resolve(null); },
+                    { enableHighAccuracy: false, timeout: 10000 }
                 );
             } else {
                 resolve(null);
@@ -55,7 +56,7 @@ const OgeChatWidget = () => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }, [messages, isLoading])
 
-    const handleSendMessage = async (textOverride) => {
+    const handleSendMessage = async (textOverride, locationOverride = null) => {
         const content = textOverride || input
         if (!content.trim()) return
 
@@ -65,7 +66,7 @@ const OgeChatWidget = () => {
         setIsLoading(true)
 
         // Ensure we try to get location on user gesture for mobile compatibility
-        const currentLoc = location || await requestLocation();
+        const currentLoc = locationOverride || location || await requestLocation();
 
         try {
             const response = await fetch('/api/ai/chat', {
@@ -168,18 +169,34 @@ const OgeChatWidget = () => {
                                     }`}>
                                         {/* Standardize rendering for both 'content' and 'message' keys */}
                                         {(msg.content || msg.message) && <p className="leading-relaxed">{msg.content || msg.message}</p>}
+
+                                        {/* Location Request Button */}
+                                        {msg.status === 'missing_location' && !location && (
+                                            <button 
+                                                onClick={async () => {
+                                                    const loc = await requestLocation()
+                                                    if (loc) {
+                                                        handleSendMessage("Location access granted. Please proceed with my request.", loc)
+                                                    }
+                                                }}
+                                                className="mt-3 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-green-100"
+                                            >
+                                                <MapPin size={16} />
+                                                Enable Location Access
+                                            </button>
+                                        )}
                                         
                                         {/* Product Results */}
                                         {msg.products && (
                                             <div className="mt-3 space-y-2">
                                                 {msg.products.map(p => (
-                                                    <div key={p.id} className="flex gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                                                    <Link href={`/product/${p.id}`} key={p.id} className="flex gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors group">
                                                         {p.image && <div className="w-12 h-12 relative rounded-md overflow-hidden shrink-0"><Image src={p.image} alt={p.name} fill className="object-cover" /></div>}
                                                         <div className="overflow-hidden">
-                                                            <p className="font-bold text-xs truncate">{p.name}</p>
+                                                            <p className="font-bold text-xs truncate group-hover:text-green-600 transition-colors">{p.name}</p>
                                                             <p className="text-green-600 text-[10px] font-bold">{formatPrice(p.price)}</p>
                                                         </div>
-                                                    </div>
+                                                    </Link>
                                                 ))}
                                             </div>
                                         )}
@@ -188,17 +205,35 @@ const OgeChatWidget = () => {
                                         {msg.services && (
                                             <div className="mt-3 space-y-2">
                                                 {msg.services.map(s => (
-                                                    <div key={s.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100">
-                                                        <p className="font-bold text-xs">{s.name}</p>
-                                                        <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-1">
-                                                            <MapPin size={10} /> {s.address}
+                                                    <div key={s.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100 flex gap-3">
+                                                        {s.logo && (
+                                                            <div className="w-12 h-12 relative rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white">
+                                                                <Image src={s.logo} alt={s.name} fill className="object-cover" />
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-xs truncate">{s.name}</p>
+                                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-1 truncate">
+                                                                <MapPin size={10} /> {s.address}
+                                                            </div>
+                                                            {s.distance && (
+                                                                <p className="text-[10px] text-green-600 font-medium mt-0.5">{s.distance}</p>
+                                                            )}
+                                                            <div className="flex gap-2 mt-2">
+                                                                <Link 
+                                                                    href={`/services/${s.id}`}
+                                                                    className="flex-1 py-1.5 bg-slate-200 text-slate-700 text-[10px] rounded-md font-bold text-center hover:bg-slate-300 transition-colors"
+                                                                >
+                                                                    View Profile
+                                                                </Link>
+                                                                <button 
+                                                                    onClick={() => handleSendMessage(`Book appointment with ${s.name} (ID: ${s.id})`)}
+                                                                    className="flex-1 py-1.5 bg-slate-900 text-white text-[10px] rounded-md font-bold hover:bg-slate-800 transition-colors"
+                                                                >
+                                                                    Book Now
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <button 
-                                                            onClick={() => handleSendMessage(`Book appointment with ${s.name} (ID: ${s.id})`)}
-                                                            className="mt-2 w-full py-1.5 bg-slate-900 text-white text-[10px] rounded-md font-bold"
-                                                        >
-                                                            Book Now
-                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>

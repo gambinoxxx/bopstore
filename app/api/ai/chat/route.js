@@ -47,15 +47,6 @@ export async function POST(request) {
       }
 
       case "find_service": {
-        if (!latitude || !longitude) {
-          return NextResponse.json({
-            intent: "find_service",
-            status: "missing_location",
-            content:
-              "I’ll need your location to find services near you 📍",
-          });
-        }
-
         const services = await findNearbyServices(
           intentData.service_type || "general",
           latitude,
@@ -63,9 +54,16 @@ export async function POST(request) {
           intentData.minRating
         );
 
-        return NextResponse.json(
-          generateServiceResponse(services)
-        );
+        const response = generateServiceResponse(services);
+
+        if (latitude == null || longitude == null) {
+          response.status = "missing_location";
+          if (services.length > 0) {
+            response.content = "I couldn't access your location, so I'm showing all available providers. Grant access to find the ones closest to you! 📍";
+          }
+        }
+
+        return NextResponse.json(response);
       }
 
       case "add_to_cart": {
@@ -102,18 +100,23 @@ export async function POST(request) {
         const customerEmail =
           user?.primaryEmailAddress?.emailAddress;
 
-        if (!customerEmail) {
-          return NextResponse.json(
-            { error: "User email not found" },
-            { status: 400 }
-          );
+        if (!userId || !customerEmail) {
+          return NextResponse.json({
+            intent: "book_appointment",
+            status: "unauthenticated",
+            content: "I've got the date, but I'll need you to sign in to Bopstore first so we can link this booking to your account! Click the sign-in button at the top to continue. 🔐"
+          });
         }
 
         const appointment = await createAppointment(
           intentData.service_id,
           intentData.date_time,
           customerName,
-          customerEmail
+          customerEmail,
+          userId,
+          intentData.phone,
+          intentData.whatsapp,
+          intentData.notes
         );
 
         const service = await prisma.store.findUnique({
