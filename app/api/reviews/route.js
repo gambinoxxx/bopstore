@@ -4,6 +4,32 @@ import { getAuth, clerkClient } from '@clerk/nextjs/server'
 
 export const dynamic = 'force-dynamic'
 
+// 2026 Dynamic Trust Logic: Server-side aggregation for Store ratings
+export async function GET(request) {
+    try {
+        const { searchParams } = new URL(request.url)
+        const storeId = searchParams.get('storeId')
+
+        if (!storeId) {
+            return NextResponse.json({ error: 'Store ID is required' }, { status: 400 })
+        }
+
+        const stats = await prisma.review.aggregate({
+            where: { storeId },
+            _avg: { rating: true },
+            _count: true
+        })
+
+        return NextResponse.json({
+            averageRating: stats._avg.rating || 0,
+            reviewCount: stats._count || 0
+        })
+    } catch (error) {
+        console.error('REVIEWS_GET_ERROR', error)
+        return NextResponse.json({ error: 'Internal Error' }, { status: 500 })
+    }
+}
+
 export async function POST(request) {
     try {
         const { userId } = getAuth(request)

@@ -7,9 +7,12 @@ import Link from 'next/link'
 import { formatPrice } from '@/lib/formatPrice'
 import { useDispatch } from 'react-redux'
 import { addToCart } from '@/lib/features/cart/cartSlice'
+import { useUser } from '@clerk/nextjs'
+import toast from 'react-hot-toast'
 
 const OgeChatWidget = () => {
     const dispatch = useDispatch()
+    const { isSignedIn } = useUser()
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState([
         { role: 'assistant', content: "Hi! I'm Oge, your Bopstore assistant. I can help you find products, discover nearby services, or book appointments. What's on your mind?" }
@@ -23,6 +26,7 @@ const OgeChatWidget = () => {
     // 1. Listen for open events from Discovery section or Search bar
     useEffect(() => {
         const handleOpen = (e) => {
+            if (!isSignedIn) return
             setIsOpen(true)
             if (e.detail?.query) {
                 handleSendMessage(e.detail.query)
@@ -30,7 +34,7 @@ const OgeChatWidget = () => {
         }
         window.addEventListener('open-oge-chat', handleOpen)
         return () => window.removeEventListener('open-oge-chat', handleOpen)
-    }, [])
+    }, [isSignedIn])
 
     // 2. Get user location on mount for "near me" accuracy
     const requestLocation = () => {
@@ -132,7 +136,13 @@ const OgeChatWidget = () => {
         <>
             {/* Floating FAB */}
             <button 
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    if (!isSignedIn) {
+                        toast.error("Please sign in to use Oge Assistant")
+                        return
+                    }
+                    setIsOpen(true)
+                }}
                 className="fixed bottom-6 right-6 w-14 h-14 bg-green-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50 group"
             >
                 <Sparkles size={24} className="group-hover:rotate-12 transition-transform" />

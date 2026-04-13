@@ -1,11 +1,12 @@
 'use client'
 import { assets } from '@/assets/assets'
-import { ArrowRightIcon, ChevronRightIcon, Trophy } from 'lucide-react'
+import { ArrowRightIcon, ChevronRightIcon, Trophy, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useState, useEffect } from 'react'
 import CategoriesMarquee from './CategoriesMarquee'
 import axios from 'axios'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const Hero = () => {
 
@@ -66,34 +67,76 @@ const Hero = () => {
     }, []);
 
     return (
-        <div className='mx-6'>
-            <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10'>
-                <div className='relative flex-1 flex flex-col bg-green-200 rounded-3xl xl:min-h-100 group'>
-                    <div className='p-5 sm:p-16'>
-                        <div className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm'>
-                            <span className='bg-green-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs'>NEWS</span> Free Shipping on Orders Above N200,000! <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
-                        </div>
-                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs  sm:max-w-md'>
-                            {/* Gadgets you'll love. Prices you'll trust. A0FF74*/}
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className='mx-6'
+        >
+            <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10 min-h-[500px]'>
+                {/* Main Hero Card: 2026 Premium Mesh Gradient */}
+                <div className='relative flex-1 flex flex-col bg-gradient-to-br from-[#E2FFD1] via-[#B9F8CF] to-[#96FFC1] rounded-[2.5rem] xl:min-h-100 overflow-hidden group shadow-2xl shadow-green-100/50'>
+                    <div className='p-8 sm:p-20 relative z-10'>
+                        <motion.div 
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm font-bold'
+                        >
+                            <span className='bg-green-600 px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider'>News</span> 
+                            Free Shipping on Orders Above {currency}200k! 
+                            <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
+                        </motion.div>
+                        
+                        <h2 className='text-4xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent tracking-tighter max-w-xs sm:max-w-md'>
                             Everything You Need. Value You Deserve.
                         </h2>
-                        <div className='text-slate-800 text-sm font-medium mt-4 sm:mt-8'>
-                            <p>Starts from</p>
-                            <p className='text-3xl'>{currency}2500</p>
+
+                        <div className='flex items-baseline gap-2 mt-4 sm:mt-8'>
+                            <p className='text-slate-500 font-bold uppercase tracking-widest text-[10px]'>Starts from</p>
+                            <p className='text-4xl font-black text-slate-900'>{currency}2,500</p>
                         </div>
-                        <Link href='/shop' className='inline-block bg-slate-800 text-white text-sm py-2.5 px-7 sm:py-5 sm:px-12 mt-4 sm:mt-10 rounded-md hover:bg-slate-900 hover:scale-103 active:scale-95 transition'>
+
+                        <Link href='/shop' className='inline-flex items-center gap-3 bg-slate-900 text-white text-sm font-black py-4 px-10 mt-10 rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn'>
                             LEARN MORE
+                            <ArrowRightIcon size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                         </Link>
                     </div>
-                    <Image className='sm:absolute bottom-0 right-0 md:right-10 w-4/5 mx-auto h-48 object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem]' src={rotatingImages[currentImageIndex]} alt="Hero Image" />
+
+                    {/* Carousel Container */}
+                    <div className='absolute bottom-0 right-0 md:right-10 w-full sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end'>
+                        <AnimatePresence mode='wait'>
+                            <motion.div
+                                key={currentImageIndex}
+                                initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: -50, scale: 0.9 }}
+                                transition={{ duration: 0.6, ease: "circOut" }}
+                                className='relative w-full h-full p-8 sm:p-0 flex items-end justify-end'
+                            >
+                                <Image 
+                                    className='w-4/5 h-48 object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem] drop-shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]' 
+                                    src={rotatingImages[currentImageIndex]} 
+                                    alt="Hero Image" 
+                                    priority
+                                />
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
                 </div>
-                <div className='flex flex-col md:flex-row xl:flex-col gap-5 w-full xl:max-w-sm text-sm text-slate-600'>
-                    <div className='flex-1 flex flex-col justify-center w-full bg-white border border-slate-200 rounded-3xl p-6 px-8 shadow-sm group'>
-                        <div className='flex items-center gap-2 mb-4'>
-                            <h3 className='text-xl font-semibold text-slate-800'>Vendor of the Week</h3>
-                            <Trophy className="text-yellow-500" size={24} />
+
+                {/* Sidebar Orchestration */}
+                <div className='flex flex-col md:flex-row xl:flex-col gap-6 w-full xl:max-w-sm'>
+                    {/* Leaderboard Card */}
+                    <div className='flex-1 flex flex-col bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 group'>
+                        <div className='flex items-center justify-between mb-6'>
+                            <div className='flex items-center gap-2'>
+                                <h3 className='text-xl font-black text-slate-900 tracking-tight'>Top Vendors</h3>
+                                <Sparkles className="text-green-500" size={18} />
+                            </div>
+                            <Trophy className="text-yellow-500 animate-bounce" size={24} />
                         </div>
-                        <div className='space-y-3 w-full'>
+                        <div className='space-y-4 w-full'>
                             {loading ? (
                                 Array(3).fill(0).map((_, i) => (
                                     <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 animate-pulse">
@@ -108,30 +151,40 @@ const Hero = () => {
                                 ))
                             ) : (
                                 topVendors.map((vendor, index) => (
-                                <Link href={vendor.username ? `/shop/${vendor.username}` : '#'} key={index} className={`flex items-center justify-between p-3 rounded-xl border ${vendor.bg} ${vendor.border} hover:shadow-md transition-all`}>
+                                <Link href={vendor.username ? `/shop/${vendor.username}` : '#'} key={index} className={`flex items-center justify-between p-4 rounded-2xl border ${vendor.bg} ${vendor.border} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}>
                                     <div className='flex items-center gap-3'>
                                         <span className='text-2xl'>{vendor.medal}</span>
                                         <div>
-                                            <p className='font-medium text-slate-800 text-base'>{vendor.name}</p>
-                                            <p className='text-xs text-slate-500'>{vendor.deals} Deals Closed</p>
+                                            <p className='font-black text-slate-900 text-sm'>{vendor.name}</p>
+                                            <p className='text-[10px] text-slate-500 font-bold uppercase tracking-wider'>{vendor.deals} Deals</p>
                                         </div>
                                     </div>
-                                    <div className={`font-bold text-lg ${vendor.color}`}>#{index + 1}</div>
+                                    <div className={`font-black text-lg ${vendor.color}`}>#{index + 1}</div>
                                 </Link>
                             )))}
                         </div>
                     </div>
-                    <Link href='/shop' className='flex-1 flex items-center justify-between w-full bg-blue-200 rounded-3xl p-6 px-8 group'>
-                        <div>
-                            <p className='text-3xl font-medium bg-gradient-to-r from-slate-800 to-[#78B2FF] bg-clip-text text-transparent max-w-40'>20% discounts</p>
-                            <p className='flex items-center gap-1 mt-4'>View more <ArrowRightIcon className='group-hover:ml-2 transition-all' size={18} /> </p>
+
+                    {/* Discount Action Card */}
+                    <Link href='/shop' className='flex-1 flex items-center justify-between w-full bg-gradient-to-br from-blue-500 to-blue-700 rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-blue-200'>
+                        <div className='relative z-10'>
+                            <p className='text-4xl font-black tracking-tighter leading-none mb-2'>20% <br/> OFF</p>
+                            <p className='text-[10px] font-black uppercase tracking-[0.2em] opacity-80'>Weekend Promo</p>
+                            <p className='flex items-center gap-2 mt-6 text-sm font-bold'>
+                                View more 
+                                <ArrowRightIcon className='group-hover:translate-x-2 transition-all' size={18} /> 
+                            </p>
                         </div>
-                        <Image className='w-35' src={assets.img10} alt="" />
+                        <div className='absolute -right-4 -bottom-4 w-40 opacity-20 group-hover:scale-110 transition-transform duration-700'>
+                            <Image className='w-full rotate-[-15deg]' src={assets.img10} alt="" />
+                        </div>
+                        {/* Glass Overlay Effect */}
+                        <div className='absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16' />
                     </Link>
                 </div>
             </div>
             <CategoriesMarquee />
-        </div>
+        </motion.div>
 
     )
 }

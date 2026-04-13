@@ -3,8 +3,11 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, Search, MapPin, Calendar, ArrowRight } from 'lucide-react'
 import Container from '@/components/Container'
+import { useUser } from '@clerk/nextjs'
+import toast from 'react-hot-toast'
 
 const OgeDiscovery = () => {
+    const { isSignedIn } = useUser()
     const features = [
         {
             icon: Search,
@@ -65,6 +68,10 @@ const OgeDiscovery = () => {
                         <button 
                             className="mt-8 px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all flex items-center gap-2 group shadow-xl shadow-slate-200"
                             onClick={() => {
+                            if (!isSignedIn) {
+                                toast.error("Please sign in to use Oge Assistant")
+                                return
+                            }
                                 // Dispatch a custom event to open the OgeChatWidget
                                 window.dispatchEvent(new CustomEvent('open-oge-chat'));
                             }}
