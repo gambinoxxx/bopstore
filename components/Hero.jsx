@@ -75,8 +75,8 @@ const Hero = () => {
         >
             <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10 min-h-[500px]'>
                 {/* Main Hero Card: 2026 Premium Mesh Gradient */}
-                <div className='relative flex-1 flex flex-col bg-gradient-to-br from-[#E2FFD1] via-[#B9F8CF] to-[#96FFC1] rounded-[2.5rem] xl:min-h-100 overflow-hidden group shadow-2xl shadow-green-100/50'>
-                    <div className='p-8 sm:p-20 relative z-10'>
+                <div className='relative flex-1 flex flex-col bg-gradient-to-br from-[#E2FFD1] via-[#B9F8CF] to-[#96FFC1] rounded-[2.5rem] xl:min-h-100 overflow-hidden group shadow-2xl shadow-green-100/50 transition-all duration-500'>
+                    <div className='p-6 sm:p-20 relative z-10'>
                         <motion.div 
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -88,34 +88,47 @@ const Hero = () => {
                             <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
                         </motion.div>
                         
-                        <h2 className='text-4xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent tracking-tighter max-w-xs sm:max-w-md'>
+                        <h2 className='text-3xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent tracking-tighter max-w-[80%] sm:max-w-md'>
                             Everything You Need. Value You Deserve.
                         </h2>
 
-                        <div className='flex items-baseline gap-2 mt-4 sm:mt-8'>
+                        <div className='flex items-baseline gap-2 mt-2 sm:mt-8 relative z-10'>
                             <p className='text-slate-500 font-bold uppercase tracking-widest text-[10px]'>Starts from</p>
-                            <p className='text-4xl font-black text-slate-900'>{currency}2,500</p>
+                            <p className='text-xl sm:text-4xl font-black text-slate-900'>{currency}2,500</p>
                         </div>
 
-                        <Link href='/shop' className='inline-flex items-center gap-3 bg-slate-900 text-white text-sm font-black py-4 px-10 mt-10 rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn'>
+                        <Link href='/shop' className='inline-flex items-center gap-3 bg-slate-900 text-white text-[10px] sm:text-sm font-black py-2.5 px-5 sm:py-4 sm:px-10 mt-6 sm:mt-10 rounded-xl sm:rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn relative z-10'>
                             LEARN MORE
                             <ArrowRightIcon size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
                     {/* Carousel Container */}
-                    <div className='absolute bottom-0 right-0 md:right-10 w-full sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end'>
+                    <div className='absolute bottom-0 right-0 md:right-10 w-[85%] sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end pointer-events-none'>
                         <AnimatePresence mode='wait'>
                             <motion.div
                                 key={currentImageIndex}
                                 initial={{ opacity: 0, x: 50, scale: 0.9 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                animate={{ 
+                                    opacity: 1, 
+                                    x: 0, 
+                                    scale: 1,
+                                    y: [0, -15, 0] // Floating animation for "x3 interest"
+                                }}
                                 exit={{ opacity: 0, x: -50, scale: 0.9 }}
-                                transition={{ duration: 0.6, ease: "circOut" }}
-                                className='relative w-full h-full p-8 sm:p-0 flex items-end justify-end'
+                                transition={{ 
+                                    duration: 0.6, 
+                                    ease: "circOut",
+                                    y: {
+                                        duration: 3,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }
+                                }}
+                                className='relative w-full h-full p-4 sm:p-0 flex items-end justify-end'
                             >
                                 <Image 
-                                    className='w-4/5 h-48 object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem] drop-shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]' 
+                                    className='h-full w-auto object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem] drop-shadow-[0_30px_60px_rgba(0,0,0,0.3)]' 
                                     src={rotatingImages[currentImageIndex]} 
                                     alt="Hero Image" 
                                     priority
