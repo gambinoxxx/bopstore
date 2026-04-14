@@ -10,6 +10,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const Hero = () => {
 
+    const [activeHeroTab, setActiveHeroTab] = useState('products');
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveHeroTab((prev) => (prev === 'products' ? 'services' : 'products'));
+        }, 8000); // 8-second cycle between Products and Services
+        return () => clearInterval(interval);
+    }, []);
+
     const rotatingImages = [
         assets.img1,
         assets.img2,
@@ -74,67 +83,137 @@ const Hero = () => {
             className='mx-6'
         >
             <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10 min-h-[500px]'>
-                {/* Main Hero Card: 2026 Premium Mesh Gradient */}
-                <div className='relative flex-1 flex flex-col bg-gradient-to-br from-[#E2FFD1] via-[#B9F8CF] to-[#96FFC1] rounded-[2.5rem] xl:min-h-100 overflow-hidden group shadow-2xl shadow-green-100/50 transition-all duration-500'>
-                    <div className='p-6 sm:p-20 relative z-10'>
-                        <motion.div 
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm font-bold'
-                        >
-                            <span className='bg-green-600 px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider'>News</span> 
-                            Free Shipping on Orders Above {currency}200k! 
-                            <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
-                        </motion.div>
-                        
-                        <h2 className='text-3xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent tracking-tighter max-w-[80%] sm:max-w-md'>
-                            Everything You Need. Value You Deserve.
-                        </h2>
-
-                        <div className='flex items-baseline gap-2 mt-2 sm:mt-8 relative z-10'>
-                            <p className='text-slate-500 font-bold uppercase tracking-widest text-[10px]'>Starts from</p>
-                            <p className='text-xl sm:text-4xl font-black text-slate-900'>{currency}2,500</p>
-                        </div>
-
-                        <Link href='/shop' className='inline-flex items-center gap-3 bg-slate-900 text-white text-[10px] sm:text-sm font-black py-2.5 px-5 sm:py-4 sm:px-10 mt-6 sm:mt-10 rounded-xl sm:rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn relative z-10'>
-                            LEARN MORE
-                            <ArrowRightIcon size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-
-                    {/* Carousel Container */}
-                    <div className='absolute bottom-0 right-0 md:right-10 w-[85%] sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end pointer-events-none'>
-                        <AnimatePresence mode='wait'>
-                            <motion.div
-                                key={currentImageIndex}
-                                initial={{ opacity: 0, x: 50, scale: 0.9 }}
-                                animate={{ 
-                                    opacity: 1, 
-                                    x: 0, 
-                                    scale: 1,
-                                    y: [0, -15, 0] // Floating animation for "x3 interest"
-                                }}
-                                exit={{ opacity: 0, x: -50, scale: 0.9 }}
-                                transition={{ 
-                                    duration: 0.6, 
-                                    ease: "circOut",
-                                    y: {
-                                        duration: 3,
-                                        repeat: Infinity,
-                                        ease: "easeInOut"
-                                    }
-                                }}
-                                className='relative w-full h-full p-4 sm:p-0 flex items-end justify-end'
+                {/* Main Hero Card: Dual-Mode Premium Container */}
+                <div className={`relative flex-1 flex flex-col rounded-[2.5rem] xl:min-h-100 overflow-hidden group shadow-2xl transition-all duration-700 ${activeHeroTab === 'products' ? 'bg-gradient-to-br from-[#E2FFD1] via-[#B9F8CF] to-[#96FFC1] shadow-green-100/50' : 'bg-gradient-to-br from-[#D1F2FF] via-[#B9D5F8] to-[#96C1FF] shadow-blue-100/50'}`}>
+                    <AnimatePresence mode='wait'>
+                        {activeHeroTab === 'products' ? (
+                            <motion.div 
+                                key="products-tab"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="flex-1 flex flex-col"
                             >
-                                <Image 
-                                    className='h-full w-auto object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem] drop-shadow-[0_30px_60px_rgba(0,0,0,0.3)]' 
-                                    src={rotatingImages[currentImageIndex]} 
-                                    alt="Hero Image" 
-                                    priority
-                                />
+                                <div className='p-6 sm:p-20 relative z-10'>
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className='inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm font-bold'
+                                    >
+                                        <span className='bg-green-600 px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider'>News</span> 
+                                        Free Shipping on Orders Above {currency}200k! 
+                                        <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
+                                    </motion.div>
+                                    
+                                    <h2 className='text-3xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent tracking-tighter max-w-[80%] sm:max-w-md'>
+                                        Everything You Need. Value You Deserve.
+                                    </h2>
+
+                                    <div className='flex items-baseline gap-2 mt-2 sm:mt-8 relative z-10'>
+                                        <p className='text-slate-500 font-bold uppercase tracking-widest text-[10px]'>Starts from</p>
+                                        <p className='text-xl sm:text-4xl font-black text-slate-900'>{currency}2,500</p>
+                                    </div>
+
+                                    <Link href='/shop' className='inline-flex items-center gap-3 bg-slate-900 text-white text-[10px] sm:text-sm font-black py-2.5 px-5 sm:py-4 sm:px-10 mt-6 sm:mt-10 rounded-xl sm:rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn relative z-10'>
+                                        LEARN MORE
+                                        <ArrowRightIcon size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                    </Link>
+                                </div>
+
+                                {/* Product Image Carousel */}
+                                <div className='absolute bottom-0 right-0 md:right-10 w-[85%] sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end pointer-events-none'>
+                                    <AnimatePresence mode='wait'>
+                                        <motion.div
+                                            key={currentImageIndex}
+                                            initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                                            animate={{ opacity: 1, x: 0, scale: 1, y: [0, -15, 0] }}
+                                            exit={{ opacity: 0, x: -50, scale: 0.9 }}
+                                            transition={{ 
+                                                duration: 0.6, 
+                                                ease: "circOut",
+                                                y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                                            }}
+                                            className='relative w-full h-full p-4 sm:p-0 flex items-end justify-end'
+                                        >
+                                            <Image 
+                                                className='h-full w-auto object-contain sm:object-cover sm:h-auto sm:w-auto sm:max-w-[17rem] drop-shadow-[0_30px_60px_rgba(0,0,0,0.3)]' 
+                                                src={rotatingImages[currentImageIndex]} 
+                                                alt="Product Hero" 
+                                                priority
+                                            />
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
                             </motion.div>
-                        </AnimatePresence>
+                        ) : (
+                            <motion.div 
+                                key="services-tab"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="flex-1 flex flex-col"
+                            >
+                                <div className='p-6 sm:p-20 relative z-10'>
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className='inline-flex items-center gap-3 bg-blue-300 text-blue-600 pr-4 p-1 rounded-full text-xs sm:text-sm font-bold'
+                                    >
+                                        <span className='bg-blue-600 px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider'>Verified</span> 
+                                        Professional Help, Just a Click Away.
+                                        <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
+                                    </motion.div>
+                                    
+                                    <h2 className='text-3xl sm:text-6xl leading-[1.1] my-6 font-medium bg-gradient-to-r from-slate-600 to-blue-500 bg-clip-text text-transparent tracking-tighter max-w-[80%] sm:max-w-md'>
+                                        Expert Solutions. Tailored for You.
+                                    </h2>
+
+                                    <div className='flex items-baseline gap-2 mt-2 sm:mt-8 relative z-10'>
+                                        <p className='text-slate-500 font-bold uppercase tracking-widest text-[10px]'>Starts from</p>
+                                        <p className='text-xl sm:text-4xl font-black text-slate-900'>{currency}1,000</p>
+                                    </div>
+
+                                    <Link href='/services' className='inline-flex items-center gap-3 bg-slate-900 text-white text-[10px] sm:text-sm font-black py-2.5 px-5 sm:py-4 sm:px-10 mt-6 sm:mt-10 rounded-xl sm:rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all group/btn relative z-10'>
+                                        EXPLORE SERVICES
+                                        <ArrowRightIcon size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                    </Link>
+                                </div>
+
+                                <div className='absolute bottom-0 right-0 md:right-10 w-[85%] sm:w-auto h-[18rem] sm:h-auto z-0 flex items-end justify-end pointer-events-none'>
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                                        animate={{ opacity: 1, x: 0, scale: 1, y: [0, -15, 0] }}
+                                        transition={{ 
+                                            duration: 0.6, 
+                                            ease: "circOut",
+                                            y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                                        }}
+                                        className='relative w-full h-full p-4 sm:p-0 flex items-end justify-end'
+                                    >
+                                        <Image 
+                                            className='h-full w-auto object-contain sm:h-auto sm:w-auto sm:max-w-[22rem] drop-shadow-[0_30px_60px_rgba(0,0,0,0.3)]' 
+                                            src={assets.service} 
+                                            alt="Service Hero" 
+                                            priority
+                                        />
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Manual Tab Switcher Indicators */}
+                    <div className="absolute bottom-6 left-6 sm:left-20 flex gap-3 z-20">
+                        <button 
+                            onClick={() => setActiveHeroTab('products')} 
+                            className={`h-1.5 rounded-full transition-all duration-500 ${activeHeroTab === 'products' ? 'w-12 bg-slate-900' : 'w-3 bg-slate-400 opacity-50 hover:opacity-100'}`} 
+                        />
+                        <button 
+                            onClick={() => setActiveHeroTab('services')} 
+                            className={`h-1.5 rounded-full transition-all duration-500 ${activeHeroTab === 'services' ? 'w-12 bg-slate-900' : 'w-3 bg-slate-400 opacity-50 hover:opacity-100'}`} 
+                        />
                     </div>
                 </div>
 
