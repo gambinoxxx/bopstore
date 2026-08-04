@@ -9,7 +9,7 @@ const WhatsAppWidget = () => {
   const prefilledMessage = "Hello! I have a question about Bop-Store.";
 
   const widgetRef = useRef(null);
-  const [position, setPosition] = useState({ x: 30, y: 30 }); // Initial position from bottom-right
+  const [position, setPosition] = useState({ x: 30, y: 30 }); // Initial position from bottom-left
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialPos = useRef({ x: 0, y: 0 });
@@ -33,7 +33,7 @@ const WhatsAppWidget = () => {
     const dy = e.clientY - dragStartPos.current.y;
 
     // Calculate new position, ensuring it stays within viewport bounds
-    const newX = Math.max(0, Math.min(window.innerWidth - widgetRef.current.offsetWidth, initialPos.current.x - dx));
+    const newX = Math.max(0, Math.min(window.innerWidth - widgetRef.current.offsetWidth, initialPos.current.x + dx));
     const newY = Math.max(0, Math.min(window.innerHeight - widgetRef.current.offsetHeight, initialPos.current.y - dy));
 
     setPosition({ x: newX, y: newY });
@@ -61,7 +61,7 @@ const WhatsAppWidget = () => {
     <div
       ref={widgetRef}
       className={`fixed z-50 transition-all ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      style={{ bottom: `${position.y}px`, right: `${position.x}px` }}
+      style={{ bottom: `${position.y}px`, left: `${position.x}px` }}
       onMouseDown={handleMouseDown}
     >
       <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => isDragging && e.preventDefault()}>
