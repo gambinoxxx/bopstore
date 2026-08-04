@@ -298,7 +298,7 @@ const ServiceDetailsClient = () => {
                             <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{service.description}</p>
                         </div>
 
-                        {/* Service Offerings */}
+                        {/* Services Offerings */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
                             <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <ShoppingBag size={20} />

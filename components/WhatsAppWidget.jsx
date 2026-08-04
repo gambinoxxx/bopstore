@@ -52,7 +52,7 @@ const WhatsAppWidget = () => {
   }, [isDragging]);
 
   if (!whatsappNumber) {
-    return null; // Don't render if the number isn't set
+    return null; // Don't render if the number isn't set!
   }
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(prefilledMessage)}`;
