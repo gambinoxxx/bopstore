@@ -231,7 +231,10 @@ const ServiceDetailsClient = () => {
 
                             <div className="space-y-3 mt-8">
                                 <button 
-                                    onClick={() => setIsContactOpen(true)}
+                                    onClick={() => {
+                                        setLightboxOpen(false)
+                                        setIsContactOpen(true)
+                                    }}
                                     className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-colors"
                                 >
                                     Contact Provider
