@@ -240,53 +240,16 @@ const ServiceDetailsClient = () => {
                                     Contact Provider
                                 </button>
                                 <button 
-                                    onClick={() => setIsAppointmentOpen(true)}
+                                    onClick={() => {
+                                        setLightboxOpen(false)
+                                        setIsAppointmentOpen(true)
+                                    }}
                                     className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors"
                                 >
                                     Book Appointment
                                 </button>
                             </div>
 
-                            <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} service={service} />
-                            
-                            {/* Appointment Modal */}
-                            {isAppointmentOpen && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                                    <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
-                                        <button onClick={() => setIsAppointmentOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                                            <X size={20} />
-                                        </button>
-                                        <h2 className="text-xl font-bold text-slate-900 mb-4">Book Appointment</h2>
-                                        <form onSubmit={handleAppointmentSubmit} className="space-y-4">
-                                            <input required name="name" value={appointmentData.name} onChange={handleAppointmentChange} placeholder="Your Name" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
-                                            <input required name="email" type="email" value={appointmentData.email} onChange={handleAppointmentChange} placeholder="Your Email" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <input required name="phone" type="tel" value={appointmentData.phone} onChange={handleAppointmentChange} placeholder="Phone Number" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
-                                                <input name="whatsapp" type="tel" value={appointmentData.whatsapp} onChange={handleAppointmentChange} placeholder="WhatsApp Number" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-medium text-slate-500 ml-1">Preferred Date & Time</label>
-                                                <input required name="date" type="datetime-local" value={appointmentData.date} onChange={handleAppointmentChange} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
-                                            </div>
-                                            <textarea name="notes" value={appointmentData.notes} onChange={handleAppointmentChange} placeholder="Additional Notes (Optional)" rows={3} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500 resize-none" />
-                                            <button 
-                                                type="submit" 
-                                                disabled={isSubmittingAppointment}
-                                                className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {isSubmittingAppointment ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin" size={20} />
-                                                        Processing...
-                                                    </>
-                                                ) : (
-                                                    "Confirm Booking"
-                                                )}
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            )}
                         </motion.div>
                     </div>
 
@@ -399,6 +362,35 @@ const ServiceDetailsClient = () => {
                     </div>
                 </div>
             </Container>
+
+            <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} service={service} />
+
+            {isAppointmentOpen && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-6 relative">
+                        <button onClick={() => setIsAppointmentOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                            <X size={20} />
+                        </button>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">Book Appointment</h2>
+                        <form onSubmit={handleAppointmentSubmit} className="space-y-4">
+                            <input required name="name" value={appointmentData.name} onChange={handleAppointmentChange} placeholder="Your Name" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                            <input required name="email" type="email" value={appointmentData.email} onChange={handleAppointmentChange} placeholder="Your Email" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input required name="phone" type="tel" value={appointmentData.phone} onChange={handleAppointmentChange} placeholder="Phone Number" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                <input name="whatsapp" type="tel" value={appointmentData.whatsapp} onChange={handleAppointmentChange} placeholder="WhatsApp Number" className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-slate-500 ml-1">Preferred Date & Time</label>
+                                <input required name="date" type="datetime-local" value={appointmentData.date} onChange={handleAppointmentChange} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                            </div>
+                            <textarea name="notes" value={appointmentData.notes} onChange={handleAppointmentChange} placeholder="Additional Notes (Optional)" rows={3} className="w-full p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-green-500 resize-none" />
+                            <button type="submit" disabled={isSubmittingAppointment} className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                                {isSubmittingAppointment ? <><Loader2 className="animate-spin" size={20} /> Processing...</> : "Confirm Booking"}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Image Lightbox Modal */}
             {lightboxOpen && (
