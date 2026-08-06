@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 const OgeChatWidget = () => {
     const dispatch = useDispatch()
-    const { isSignedIn } = useUser()
+    const { isSignedIn, user } = useUser()
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState([
         { role: 'assistant', content: "Hi! I'm Oge, your Bopstore assistant. I can help you find products, discover nearby services, or book appointments. What's on your mind?" }
@@ -21,6 +21,17 @@ const OgeChatWidget = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [location, setLocation] = useState(null)
     const [locationStatus, setLocationStatus] = useState('idle')
+    const [selectedBookingService, setSelectedBookingService] = useState(null)
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+    const [bookingData, setBookingData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        whatsapp: '',
+        date: '',
+        notes: ''
+    })
+    const [isSubmittingBooking, setIsSubmittingBooking] = useState(false)
     const scrollRef = useRef(null)
     const fileInputRef = useRef(null)
 
@@ -109,10 +120,70 @@ const OgeChatWidget = () => {
             if (data.intent === 'add_to_cart' && data.status === 'success' && data.productId) {
                 dispatch(addToCart({ productId: data.productId, quantity: data.quantity || 1 }))
             }
+
+            if (data.intent === 'book_appointment' && data.status === 'needs_details' && data.serviceId) {
+                openBookingModal({
+                    id: data.serviceId,
+                    name: data.serviceName || 'Selected service',
+                    address: data.serviceAddress || ''
+                })
+            }
         } catch (error) {
             setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I'm having trouble connecting right now. Please try again." }])
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const openBookingModal = (service) => {
+        setSelectedBookingService(service)
+        setIsBookingModalOpen(true)
+        setBookingData(prev => ({
+            ...prev,
+            name: user?.fullName || prev.name,
+            email: user?.primaryEmailAddress?.emailAddress || prev.email
+        }))
+    }
+
+    const handleBookingChange = (e) => {
+        setBookingData({ ...bookingData, [e.target.name]: e.target.value })
+    }
+
+    const handleBookingSubmit = async (e) => {
+        e.preventDefault()
+        if (!selectedBookingService) return
+
+        setIsSubmittingBooking(true)
+        try {
+            const res = await fetch('/api/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...bookingData,
+                    storeId: selectedBookingService.id
+                })
+            })
+
+            if (res.ok) {
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    intent: 'book_appointment',
+                    status: 'success',
+                    content: `Your appointment with ${selectedBookingService.name} has been requested. We'll notify you once the provider confirms it.`
+                }])
+                toast.success('Appointment request sent!')
+                setIsBookingModalOpen(false)
+                setSelectedBookingService(null)
+                setBookingData({ name: '', email: '', phone: '', whatsapp: '', date: '', notes: '' })
+            } else {
+                const body = await res.json()
+                toast.error(body?.error || 'Failed to book appointment')
+            }
+        } catch (error) {
+            console.error('Booking submission error', error)
+            toast.error('An error occurred while booking your appointment.')
+        } finally {
+            setIsSubmittingBooking(false)
         }
     }
 
@@ -245,7 +316,7 @@ const OgeChatWidget = () => {
                                                                     View Profile
                                                                 </Link>
                                                                 <button 
-                                                                    onClick={() => handleSendMessage(`Book appointment with ${s.name} (ID: ${s.id})`)}
+                                                                    onClick={() => openBookingModal({ id: s.id, name: s.name, address: s.address })}
                                                                     className="flex-1 py-1.5 bg-slate-900 text-white text-[10px] rounded-md font-bold hover:bg-slate-800 transition-colors"
                                                                 >
                                                                     Book Now
@@ -281,6 +352,33 @@ const OgeChatWidget = () => {
                             )}
                         </div>
 
+                        {isBookingModalOpen && selectedBookingService && (
+                            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
+                                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 relative">
+                                    <button onClick={() => setIsBookingModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                                        <X size={20} />
+                                    </button>
+                                    <h2 className="text-xl font-bold text-slate-900 mb-2">Book Appointment</h2>
+                                    <p className="text-sm text-slate-500 mb-4">{selectedBookingService.name} • {selectedBookingService.address}</p>
+                                    <form onSubmit={handleBookingSubmit} className="space-y-4">
+                                        <input required name="name" value={bookingData.name} onChange={handleBookingChange} placeholder="Your Name" className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                        <input required name="email" type="email" value={bookingData.email} onChange={handleBookingChange} placeholder="Your Email" className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <input required name="phone" type="tel" value={bookingData.phone} onChange={handleBookingChange} placeholder="Phone Number" className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                            <input name="whatsapp" type="tel" value={bookingData.whatsapp} onChange={handleBookingChange} placeholder="WhatsApp Number" className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-medium text-slate-500 ml-1">Preferred Date & Time</label>
+                                            <input required name="date" type="datetime-local" value={bookingData.date} onChange={handleBookingChange} className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500" />
+                                        </div>
+                                        <textarea name="notes" value={bookingData.notes} onChange={handleBookingChange} placeholder="Additional Notes (Optional)" rows={3} className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-green-500 resize-none" />
+                                        <button type="submit" disabled={isSubmittingBooking} className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                                            {isSubmittingBooking ? <><Loader2 className="animate-spin" size={18} /> Processing...</> : 'Confirm Booking'}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                         {/* Input Area */}
                         <div className="p-4 bg-white border-t border-slate-100">
                             {locationStatus !== 'idle' && (

@@ -91,11 +91,21 @@ export async function POST(request) {
       }
 
       case "book_appointment": {
+        const serviceInfo = intentData.service_id
+          ? await prisma.store.findUnique({
+              where: { id: intentData.service_id },
+              select: { name: true, address: true },
+            })
+          : null;
+
         if (!intentData.service_id || !intentData.date_time) {
           if (!userId) {
             return NextResponse.json({
               intent: "book_appointment",
               status: "unauthenticated",
+              serviceId: intentData.service_id || null,
+              serviceName: serviceInfo?.name || null,
+              serviceAddress: serviceInfo?.address || null,
               content:
                 "You’ll need to log in first so I can help you book that 👍",
             });
@@ -103,7 +113,10 @@ export async function POST(request) {
 
           return NextResponse.json({
             intent: "book_appointment",
-            status: "incomplete_details",
+            status: "needs_details",
+            serviceId: intentData.service_id || null,
+            serviceName: serviceInfo?.name || null,
+            serviceAddress: serviceInfo?.address || null,
             content:
               "I need a service and time to book this. Just pick one and I’ll handle the rest 🙂",
           });
