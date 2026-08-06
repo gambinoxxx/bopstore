@@ -20,6 +20,7 @@ const OgeChatWidget = () => {
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [location, setLocation] = useState(null)
+    const [locationStatus, setLocationStatus] = useState('idle')
     const scrollRef = useRef(null)
     const fileInputRef = useRef(null)
 
@@ -36,20 +37,27 @@ const OgeChatWidget = () => {
         return () => window.removeEventListener('open-oge-chat', handleOpen)
     }, [isSignedIn])
 
-    // 2. Get user location on mount for "near me" accuracy
+    // 2. Request location only for nearby searches, and make the result visible.
     const requestLocation = () => {
         return new Promise((resolve) => {
             if ("geolocation" in navigator) {
+                setLocationStatus('requesting')
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         const loc = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
                         setLocation(loc);
+                        setLocationStatus('available')
                         resolve(loc);
                     },
-                    (err) => { console.warn("Location error:", err); resolve(null); },
-                    { enableHighAccuracy: false, timeout: 10000 }
+                    (err) => {
+                        console.warn("Location error:", err);
+                        setLocationStatus(err.code === 1 ? 'denied' : 'unavailable')
+                        resolve(null);
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 }
                 );
             } else {
+                setLocationStatus('unavailable')
                 resolve(null);
             }
         });
@@ -69,8 +77,8 @@ const OgeChatWidget = () => {
         setInput('')
         setIsLoading(true)
 
-        // Ensure we try to get location on user gesture for mobile compatibility
-        const currentLoc = locationOverride || location || await requestLocation();
+        const needsNearbyLocation = /\b(around me|near me|nearby|closest)\b/i.test(content)
+        const currentLoc = locationOverride || (needsNearbyLocation ? location || await requestLocation() : null)
 
         try {
             const response = await fetch('/api/ai/chat', {
@@ -275,6 +283,14 @@ const OgeChatWidget = () => {
 
                         {/* Input Area */}
                         <div className="p-4 bg-white border-t border-slate-100">
+                            {locationStatus !== 'idle' && (
+                                <p className={`mb-2 text-[10px] font-medium ${locationStatus === 'available' ? 'text-green-600' : locationStatus === 'requesting' ? 'text-slate-500' : 'text-amber-600'}`}>
+                                    {locationStatus === 'available' && 'Location shared for nearby results.'}
+                                    {locationStatus === 'requesting' && 'Getting your location…'}
+                                    {locationStatus === 'denied' && 'Location permission was denied. You can still search by area.'}
+                                    {locationStatus === 'unavailable' && 'Location is unavailable. You can still search by area.'}
+                                </p>
+                            )}
                             <div className="flex items-center gap-2">
                                 <button 
                                     onClick={() => fileInputRef.current.click()}

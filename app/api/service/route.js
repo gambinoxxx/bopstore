@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getAuth } from '@clerk/nextjs/server'
 import imagekit from "@/configs/imageKit";
+import { geocodeAddress } from '@/lib/ai/geocoding';
 
 export async function POST(request) {
     try {
@@ -36,6 +37,11 @@ export async function POST(request) {
 
         let logoUrl = ''
         const imageUrls = []
+        const geoData = await geocodeAddress(location)
+
+        if (!geoData) {
+            console.warn(`SERVICE_GEOCODING_FAILED: ${location}`)
+        }
 
         try {
             // Upload Logo to ImageKit
@@ -77,7 +83,9 @@ export async function POST(request) {
                 logo: logoUrl,
                 rating: 0,
                 isActive: false, // Service must be approved by admin
-                status: 'pending'
+                status: 'pending',
+                latitude: geoData?.latitude,
+                longitude: geoData?.longitude,
             }
         })
 

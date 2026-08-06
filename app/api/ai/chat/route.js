@@ -20,6 +20,12 @@ export async function POST(request) {
 
     const { message, latitude, longitude, history } =
       await request.json();
+    const safeLatitude = latitude == null ? NaN : Number(latitude);
+    const safeLongitude = longitude == null ? NaN : Number(longitude);
+    const hasValidCoordinates = Number.isFinite(safeLatitude) &&
+      Number.isFinite(safeLongitude) &&
+      safeLatitude >= -90 && safeLatitude <= 90 &&
+      safeLongitude >= -180 && safeLongitude <= 180;
 
     if (!message) {
       return NextResponse.json(
@@ -33,11 +39,11 @@ export async function POST(request) {
     const catalogQuery = extractCatalogQuery(message);
     const intentData = catalogQuery || await detectIntent(
       message,
-      { latitude, longitude },
+      hasValidCoordinates ? { latitude: safeLatitude, longitude: safeLongitude } : null,
       history
     );
 
-    console.log("🧠 Intent:", intentData, catalogQuery ? "(catalog engine)" : "(AI)");
+    console.log("🧠 Intent:", intentData, catalogQuery ? "(catalog engine)" : "(AI)", hasValidCoordinates ? "(location received)" : "(no location)");
 
     // 🧠 STEP 2: Handle intent
     switch (intentData.intent) {
@@ -52,14 +58,18 @@ export async function POST(request) {
       case "find_service": {
         const services = await findNearbyServices(
           intentData.service_type || "general",
-          latitude,
-          longitude,
-          intentData.minRating
+          hasValidCoordinates ? safeLatitude : null,
+          hasValidCoordinates ? safeLongitude : null,
+          intentData.minRating,
+          {
+            locationMode: intentData.locationMode,
+            locationQuery: intentData.locationQuery,
+          }
         );
 
         const response = generateServiceResponse(services);
 
-        if (latitude == null || longitude == null) {
+        if (intentData.locationMode === "nearby" && !hasValidCoordinates) {
           response.status = "missing_location";
           if (services.length > 0) {
             response.content = "I couldn't access your location, so I'm showing all available providers. Grant access to find the ones closest to you! 📍";

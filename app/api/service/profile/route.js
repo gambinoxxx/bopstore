@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getAuth } from '@clerk/nextjs/server'
 import imagekit from "@/configs/imageKit";
+import { geocodeAddress } from '@/lib/ai/geocoding';
 
 export const dynamic = 'force-dynamic'
 
@@ -55,6 +56,16 @@ export async function PATCH(request) {
         const keptImages = formData.getAll('keptImages') // Array of URLs
 
         let logoUrl = existingService.logo
+        const shouldGeocode = location && (
+            location !== existingService.address ||
+            existingService.latitude == null ||
+            existingService.longitude == null
+        )
+        const geoData = shouldGeocode ? await geocodeAddress(location) : null
+
+        if (shouldGeocode && !geoData) {
+            console.warn(`SERVICE_GEOCODING_FAILED: ${location}`)
+        }
 
         if (logoFile && logoFile.size > 0) {
              const buffer = Buffer.from(await logoFile.arrayBuffer())
@@ -87,7 +98,18 @@ export async function PATCH(request) {
 
         const updatedService = await prisma.store.update({
             where: { userId },
-            data: { name, category, description, address: location, contact: phone, whatsappNumber, email, logo: logoUrl, images: finalImages }
+            data: {
+                name,
+                category,
+                description,
+                address: location,
+                contact: phone,
+                whatsappNumber,
+                email,
+                logo: logoUrl,
+                images: finalImages,
+                ...(geoData && { latitude: geoData.latitude, longitude: geoData.longitude }),
+            }
         })
 
         return NextResponse.json(updatedService)
