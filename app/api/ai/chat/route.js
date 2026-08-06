@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { detectIntent } from "@/lib/ai/intentDetector";
+import { extractCatalogQuery } from "@/lib/ai/catalogQuery";
 import { searchProduct } from "@/lib/ai/productService";
 import { findNearbyServices } from "@/lib/ai/serviceService";
 import { createAppointment } from "@/lib/ai/bookingService";
@@ -27,14 +28,16 @@ export async function POST(request) {
       );
     }
 
-    // 🧠 STEP 1: Detect intent (Groq version)
-    const intentData = await detectIntent(
+    // Resolve clear product and service requests from the Bopstore catalog first.
+    // General conversation and ambiguous requests continue through the existing AI flow.
+    const catalogQuery = extractCatalogQuery(message);
+    const intentData = catalogQuery || await detectIntent(
       message,
       { latitude, longitude },
       history
     );
 
-    console.log("🧠 Intent:", intentData);
+    console.log("🧠 Intent:", intentData, catalogQuery ? "(catalog engine)" : "(AI)");
 
     // 🧠 STEP 2: Handle intent
     switch (intentData.intent) {
